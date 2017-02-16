@@ -1,0 +1,2 @@
+### VIP: BCI
+Platform for developing a BCI Application. Firstly, It will be a simple game working with an Emotive to adquire the signals and python to process those signals. The idea is advance with the project and see what we will find in the way.
