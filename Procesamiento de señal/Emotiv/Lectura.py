@@ -18,6 +18,7 @@ if __name__ == "__main__":
                 f3.append(packet.sensors['F3']['value'])
                 fc5.append(packet.sensors['FC5']['value'])
                 af3.append(packet.sensors['AF3']['value'])
+                plt.hold(True)
                 plt.plot(f3,'b')
                 plt.plot(fc5,'r')
                 plt.plot(af3,'g')
