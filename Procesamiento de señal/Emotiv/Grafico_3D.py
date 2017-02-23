@@ -22,7 +22,7 @@ ph=0
 amp=1
 freq=100
 time=1
-fs=1000
+fs=10000
 ts=1.0/fs
 time=np.arange(0,time,ts)
 y=np.sin(2*pi*freq*time+ph)
@@ -39,4 +39,5 @@ f, t, Sxx = signal.spectrogram(y, fs,window=('tukey', 0.1))
 plt.pcolormesh(t, f, Sxx)
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time [sec]')
+plt.colorbar()
 plt.show()
