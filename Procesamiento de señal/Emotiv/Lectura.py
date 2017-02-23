@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 Editor de Spyder
+Graficas de las señales obtenidas con el emotiv
+de los electrodos F3 FC5 AF3 
 """            
 import time
-import matplotlib.pyplot as plt
-from emokit.emotiv import Emotiv
+import matplotlib.pyplot as plt #Librería para las gráficas
+from emokit.emotiv import Emotiv #Librería Emokit 
 
 if __name__ == "__main__":
-    n=0
-    f3=[]
-    fc5=[]
-    af3=[]
+    n=0 # Se podría usar para limitar el while
+    f3=[] # Declarar lista para F3
+    fc5=[] # Declarar lista para FC5
+    af3=[] # Declarar lista para AF3
     with Emotiv(display_output=True, verbose=True) as headset:
         while True:
             packet = headset.dequeue()
