@@ -7,8 +7,8 @@ Created on Thu Feb 16 22:08:35 2017
 from scipy import signal
 import matplotlib.pyplot as plt
 import numpy as np
-pi=3.1316
-
+pi=np.pi
+"""
 fs = 10e3
 N = 1e5
 amp = 20
@@ -17,19 +17,26 @@ time = np.arange(N) / fs
 freq = np.linspace(1e3, 2e3, N)
 x = amp * np.sin(2*np.pi*freq*time)
 #x += np.random.normal(scale=np.sqrt(noise_power), size=time.shape)
-"""q
-dt=[]
-x=np.arange(-2*pi,2*pi,0.1)
-y=np.sin(x)
-for x in range(0,100):
-    dt.append(y)
 """
-plt.plot(time,x)
-"""
-f, t, Sxx = signal.spectrogram(x, fs)
+ph=0
+amp=1
+freq=100
+time=1
+fs=1000
+ts=1.0/fs
+time=np.arange(0,time,ts)
+y=np.sin(2*pi*freq*time+ph)
+#Primera gráfica 
+plt.figure()
+plt.plot(time,y)
+plt.grid()
+plt.show()
+#Segunda gráfica 
 
+#Tercera gráfica 
+plt.figure()
+f, t, Sxx = signal.spectrogram(y, fs,window=('tukey', 0.1))
 plt.pcolormesh(t, f, Sxx)
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time [sec]')
 plt.show()
-"""
