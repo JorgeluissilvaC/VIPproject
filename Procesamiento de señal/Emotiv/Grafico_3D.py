@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 pi=np.pi
 ph=0
-amp=1
-freq=100
+amp=10
+freq=200
 time=1
-fs=10000
+fs=1000
 ts=1.0/fs
 time=np.arange(0,time,ts)
 y=np.sin(2*pi*freq*time+ph)
