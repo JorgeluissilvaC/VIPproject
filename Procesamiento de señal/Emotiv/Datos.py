@@ -3,44 +3,65 @@
 Editor de Spyder
 """            
 from emokit.emotiv import Emotiv
+from scipy import signal
+import matplotlib.pyplot as plt
+import numpy as np
+import time 
 
 if __name__ == "__main__":
     #Constantes 
-    tm=5        #Tiempo de muestreo
-    fs=128      #Frecuencia de muestreo
-    N=fs*tm     #Numero de muestras
-    ct=0        #Contador
-    dt=[]       #Vector de datos
-
+    tm = 10   #Tiempo de muestreo
+    fs = 128.0      #Frecuencia de muestreo
+    N = fs*tm     #Numero de muestras
+    ct = 0        #Contador
+    dt = []       #Vector de datos
+    df = []
+    fp = []
+    times = np.arange(0,tm,1/fs)
     with Emotiv(display_output=False, verbose=True) as headset:
+        t1 = time.clock()
         while ct < N:
             packet = headset.dequeue()
             if packet is not None:
-                dt.append(packet.sensors)
+                # print packet.sensors
+                # print "########################" 
+                dic = {}
+                
+                for key, value in packet.sensors.iteritems():
+                    value = packet.sensors[key]['value']
+                    quality = packet.sensors[key]['quality']
+                    dic[key] = (value,quality)
+                
+                #fp = fp.append(dic['AF3'][0])
+                dt.append(dic)                
                 ct+=1
-                pass   
+            time.sleep(0.007)
+        t2 = time.clock()
+print 't = ' + str(t2 - t1)
+print 1/fs
             
-    print "ready"
-"""
-    ldic =dt
-    dicx = ldic[0].copy()
-    for key,value in dicx.iteritems():
-        	dicx[key] = []
+
+ldic = dt
+dicx = ldic[0].copy()
+for key,value in dicx.iteritems():
+    dicx[key] = []
             
-    for i in ldic:
-        	for key, value in i.iteritems():
-        		value = i[key]['value']
-        		quality = i[key]['quality']
-        		dicx[key].append((quality,value))
-        		pass
-    """
-   
-    
-    
-
-
-
-
+for i in ldic:
+    for key, value in i.iteritems():
+        value = i[key][0]
+        quality = i[key][1]
+        dicx[key].append((quality,value))
+        pass
+print "ready"
+f = open("test.txt","w")
+for item in dicx:
+    f.write("%s\n" % item)
+f.close()
+data=[i[1] for i in dicx['AF3']]
+plt.figure()
+plt.plot(times,data)
+plt.grid()
+plt.show()
 
 
 
