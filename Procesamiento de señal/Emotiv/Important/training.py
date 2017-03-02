@@ -5,6 +5,7 @@ from scipy import signal
 import matplotlib.pyplot as plt
 import numpy as np
 import time 
+import csv
 
 class game(object):
 
@@ -58,23 +59,41 @@ class game(object):
 
 	def  preparation(self):
 		pretime = 0
-		# credits to http://www.bensound.com/
-		pygame.mixer.music.load('bensound-relaxing.mp3')
-		pygame.mixer.music.play(0)
-		while pretime < 5:
+		while True:
 			milliseconds = self.clock.tick(self.fps)
 			pretime += milliseconds / 1000.0
-			self.draw_text("Preparation Stage")
-			self.draw_text("Inhale:7s Retain:7s Exhale:7sec",(100,255,100),dh = -self.width // 10)
-			self.draw_text("Do it until the sound stops",(100,255,100),dh = -self.width // 6)
-			self.draw_text("You will have 50s to concentrate",(100,255,100),dh = -self.width // 2)
-			# self.draw_text("Inhale:7s Retain:7s Exhale:7sec",(100,255,100),dh = -self.width // 10)
-			# self.draw_text("Do it until the sound stops",(100,255,100),dh = -self.width // 6)
-			pygame.display.flip()
-			self.screen.blit(self.background, (0, 0))
+			if pretime < 2:  #Instructions
+				self.draw_text("Preparation stage: Instrunctions")
+				self.draw_text("Inhale:7s Retain:7s Exhale:7sec",(100,255,100),dh = -self.width // 10)
+				self.draw_text("Do it until the sound stops",(100,255,100),dh = -self.width // 6)
+				self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 4)
+
+			elif pretime < 4: # should be 52
+				# credits to http://www.bensound.com/			
+				pygame.mixer.music.load('bensound-relaxing.mp3')
+				pygame.mixer.music.play(0)
+				self.draw_text("Relax")
+				pygame.display.flip()
+				self.screen.blit(self.background, (0, 0))
+			elif pretime < 6: # should be 57
+				pygame.mixer.music.stop()
+				self.draw_text("Concentrese en el punto")
+			elif pretime < 8: # should be 107
+				
+				pygame.display.flip()
+				self.screen.blit(self.background, (0, 0))		
+			else:
+				break
+
+
+
 			print pretime
 		y = self.getDataO(5)
-		pygame.mixer.music.stop()
+
+		w = csv.writer(open("main.csv", "w"))
+		for key, val in y.items():
+			w.writerow([key, val])
+
 	def getDataO(self, tm):
 		fs = 128.0     #Frecuencia de muestreo
 		N = fs*tm     #Numero de muestras
@@ -108,6 +127,6 @@ class game(object):
 		return dicx
 
 if __name__ == '__main__':
-
 	game(800,600).run()
+
 #print y
