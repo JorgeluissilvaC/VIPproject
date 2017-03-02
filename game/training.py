@@ -2,8 +2,7 @@
 
 
 import pygame 
-
-
+from GetData import *
 
 class game(object):
 
@@ -77,4 +76,6 @@ class game(object):
 if __name__ == '__main__':
 
 	# call with width of window and fps
-	game(800,600).run()
+	#game(800,600).run()
+    y=GetDataO(5)
+    print y
