@@ -15,7 +15,7 @@ class game(object):
 		self.height = height
 		#self.height = width // 4
 		self.dimensions = (self.width, self.height)
-		self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
+		self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
 		self.background = pygame.Surface(self.screen.get_size()).convert()
 		self.clock = pygame.time.Clock()
 		self.fps = fps
@@ -60,7 +60,7 @@ class game(object):
 		# credits to http://www.bensound.com/
 		pygame.mixer.music.load('bensound-relaxing.mp3')
 		pygame.mixer.music.play(0)
-		while pretime < 50:
+		while pretime < 10:
 			milliseconds = self.clock.tick(self.fps)
 			pretime += milliseconds / 1000.0
 			if pretime < 5:
