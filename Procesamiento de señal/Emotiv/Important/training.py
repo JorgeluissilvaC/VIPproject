@@ -67,7 +67,8 @@ class game(object):
 				self.draw_text("Inhale:7s Retain:7s Exhale:7sec",(100,255,100),dh = -self.width // 10)
 				self.draw_text("Do it until the sound stops",(100,255,100),dh = -self.width // 6)
 				self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 4)
-
+				pygame.display.flip()
+				self.screen.blit(self.background, (0, 0))
 			elif pretime < 4: # should be 52
 				# credits to http://www.bensound.com/			
 				pygame.mixer.music.load('bensound-relaxing.mp3')
@@ -78,17 +79,16 @@ class game(object):
 			elif pretime < 6: # should be 57
 				pygame.mixer.music.stop()
 				self.draw_text("Concentrese en el punto")
-			elif pretime < 8: # should be 107
-				
+				pygame.display.flip()
+				self.screen.blit(self.background, (0, 0))
+			else: # should be 107
+				pygame.draw.circle(self.screen, (255,255,255), (0, 0), 5, 0)
 				pygame.display.flip()
 				self.screen.blit(self.background, (0, 0))		
-			else:
+				y = self.getDataO(5)
 				break
-
-
-
 			print pretime
-		y = self.getDataO(5)
+		
 
 		w = csv.writer(open("main.csv", "w"))
 		for key, val in y.items():
