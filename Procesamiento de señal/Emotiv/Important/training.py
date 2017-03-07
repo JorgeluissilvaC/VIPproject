@@ -62,37 +62,58 @@ class game(object):
 		while True:
 			milliseconds = self.clock.tick(self.fps)
 			pretime += milliseconds / 1000.0
-			if pretime < 2:  #Instructions
-				self.draw_text("Preparation stage: Instrunctions")
-				self.draw_text("Inhale:7s Retain:7s Exhale:7sec",(100,255,100),dh = -self.width // 10)
-				self.draw_text("Do it until the sound stops",(100,255,100),dh = -self.width // 6)
-				self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 4)
-				pygame.display.flip()
-				self.screen.blit(self.background, (0, 0))
-			elif pretime < 4: # should be 52
+#			if pretime < 0.01:  #Instructions
+			self.draw_text("Preparation stage: Instrunctions")
+			self.draw_text("Inhale:7s Retain:7s Exhale:5sec",(100,255,100),dh = -self.width // 10)
+			self.draw_text("Do it until the sound stops",(100,255,100),dh = -self.width // 6)
+			self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 4)
+			pygame.display.flip()
+			self.screen.blit(self.background, (0, 0))
+			
+			y = self.getDataO(5)
+			w = csv.writer(open("Preparacion.csv", "w"))
+			for key, val in y.items():
+				w.writerow([key, val])
+
+#			elif pretime < 1: # should be 52
 				# credits to http://www.bensound.com/			
-				pygame.mixer.music.load('bensound-relaxing.mp3')
-				pygame.mixer.music.play(0)
-				self.draw_text("Relax")
-				pygame.display.flip()
-				self.screen.blit(self.background, (0, 0))
-			elif pretime < 6: # should be 57
-				pygame.mixer.music.stop()
-				self.draw_text("Concentrese en el punto")
-				pygame.display.flip()
-				self.screen.blit(self.background, (0, 0))
-			else: # should be 107
-				pygame.draw.circle(self.screen, (255,255,255), (0, 0), 5, 0)
-				pygame.display.flip()
-				self.screen.blit(self.background, (0, 0))		
-				y = self.getDataO(5)
-				break
-			print pretime
+			pygame.mixer.music.load('bensound-relaxing.mp3')
+			pygame.mixer.music.play(0)
+			self.draw_text("Relax")
+			pygame.display.flip()
+			self.screen.blit(self.background, (0, 0))
+			self.screen.blit(self.background, (0, 0))
+			del w,y
+			y = self.getDataO(5)
+			w = csv.writer(open("Relajacion.csv", "w"))
+			for key, val in y.items():
+				w.writerow([key, val])
+
+#			elif pretime < 1: # should be 57
+			pygame.mixer.music.stop()
+			self.draw_text("Concentrese en el punto")
+			pygame.display.flip()
+			self.screen.blit(self.background, (0, 0))
+			self.screen.blit(self.background, (0, 0))
+			del w,y
+			y = self.getDataO(2)
+			w = csv.writer(open("PreConcentracion.csv", "w"))
+			for key, val in y.items():
+				w.writerow([key, val])
+
+#			else: # should be 107
+			pygame.draw.circle(self.screen, (255,255,255), (400,300), 5, 0)
+			pygame.display.flip()
+			self.screen.blit(self.background, (0, 0))		
+			y = self.getDataO(5)
+			w = csv.writer(open("PreConcentracion.csv", "w"))
+			for key, val in y.items():
+				w.writerow([key, val])
+			break
+#			print pretime
 		
 
-		w = csv.writer(open("main.csv", "w"))
-		for key, val in y.items():
-			w.writerow([key, val])
+
 
 	def getDataO(self, tm):
 		fs = 128.0     #Frecuencia de muestreo
