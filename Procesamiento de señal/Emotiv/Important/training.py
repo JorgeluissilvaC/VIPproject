@@ -5,19 +5,22 @@ from scipy import signal
 import matplotlib.pyplot as plt
 import numpy as np
 import time 
-import csv
+import json
 
 class game(object):
 
 	def __init__ (self, width=800, height=600, fps=30):
-		"""Initialize pygame, window, background, font,..."""
+		"""Initialize pygame, window, background, font,...
+
+
+		"""
 		pygame.init()
 		pygame.display.set_caption("VIP: BCI")
 		self.width = width
 		self.height = height
 		#self.height = width // 4
 		self.dimensions = (self.width, self.height)
-		self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
+		self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
 		self.background = pygame.Surface(self.screen.get_size()).convert()
 		self.clock = pygame.time.Clock()
 		self.fps = fps
@@ -26,7 +29,10 @@ class game(object):
 
 
 	def run(self):
-		"""The mainloop"""
+		"""The mainloop
+
+
+		"""
 		running = True
 		while running:
 			for event in pygame.event.get():
@@ -58,62 +64,40 @@ class game(object):
 		self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
 	def  preparation(self):
-		pretime = 0
-		while True:
-			milliseconds = self.clock.tick(self.fps)
-			pretime += milliseconds / 1000.0
-#			if pretime < 0.01:  #Instructions
+
+#			Instructions
 			self.draw_text("Preparation stage: Instrunctions")
-			self.draw_text("Inhale:7s Retain:7s Exhale:5sec",(100,255,100),dh = -self.width // 10)
+			self.draw_text("Inhale:7s Retain:7 Exhale:7ec",(100,255,100),dh = -self.width // 10)
 			self.draw_text("Do it until the sound stops",(100,255,100),dh = -self.width // 6)
 			self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 4)
 			pygame.display.flip()
-			self.screen.blit(self.background, (0, 0))
-			
-			y = self.getDataO(5)
-			w = csv.writer(open("Preparacion.csv", "w"))
-			for key, val in y.items():
-				w.writerow([key, val])
-
-#			elif pretime < 1: # should be 52
-				# credits to http://www.bensound.com/			
-			pygame.mixer.music.load('bensound-relaxing.mp3')
+			self.screen.blit(self.background, (0, 0))	
+			y = self.getDataO(2)
+#			Credits to Mike Koenig
+			pygame.mixer.music.load('drop.mp3')
 			pygame.mixer.music.play(0)
-			self.draw_text("Relax")
-			pygame.display.flip()
-			self.screen.blit(self.background, (0, 0))
-			self.screen.blit(self.background, (0, 0))
-			del w,y
-			y = self.getDataO(5)
-			w = csv.writer(open("Relajacion.csv", "w"))
-			for key, val in y.items():
-				w.writerow([key, val])
+			with open('relajacion1.json', 'w') as fp:
+			    json.dump(y, fp)
 
-#			elif pretime < 1: # should be 57
-			pygame.mixer.music.stop()
 			self.draw_text("Concentrese en el punto")
 			pygame.display.flip()
 			self.screen.blit(self.background, (0, 0))
-			self.screen.blit(self.background, (0, 0))
-			del w,y
-			y = self.getDataO(2)
-			w = csv.writer(open("PreConcentracion.csv", "w"))
-			for key, val in y.items():
-				w.writerow([key, val])
-
-#			else: # should be 107
+			time.sleep(2)
 			pygame.draw.circle(self.screen, (255,255,255), (400,300), 5, 0)
 			pygame.display.flip()
-			self.screen.blit(self.background, (0, 0))		
+			self.screen.blit(self.background, (0, 0))
+			del y		
 			y = self.getDataO(5)
-			w = csv.writer(open("PreConcentracion.csv", "w"))
-			for key, val in y.items():
-				w.writerow([key, val])
-			break
-#			print pretime
-		
+			with open('concentration.json', 'w') as fp:
+			    json.dump(y, fp)
 
-
+			self.draw_text("Relax")
+			pygame.display.flip()
+			self.screen.blit(self.background, (0, 0))
+			del y
+			y = self.getDataO(5)
+			with open('Relajacion2.json', 'w') as fp:
+			    json.dump(y, fp)
 
 	def getDataO(self, tm):
 		fs = 128.0     #Frecuencia de muestreo
@@ -149,5 +133,3 @@ class game(object):
 
 if __name__ == '__main__':
 	game(800,600).run()
-
-#print y
