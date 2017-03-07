@@ -64,40 +64,63 @@ class game(object):
 		self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
 	def  preparation(self):
+#		Credits to Mike Koenig - Se carga la cancion 
+		pygame.mixer.music.load('drop.mp3')
+#		Instructions - Etapa de relajacion 1
+		self.draw_text("Preparation stage: Instrunctions")
+		self.draw_text("Inhale:7s Retain:7 Exhale:7ec",(100,255,100),dh = -self.width // 10)
+		self.draw_text("Do it until the sound stops",(100,255,100),dh = -self.width // 6)
+		self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 4)
+		pygame.display.flip()
+		self.screen.blit(self.background, (0, 0))	
+#		Se obtienen los datos
+		y = self.getDataO(25)
+		pygame.mixer.music.play(0)
+#		Se guardan los datos
+		with open('relajacion1.json', 'w') as fp:
+		    json.dump(y, fp)
+#		Etapa de concentracion 
+		self.draw_text("Concentrese en el punto")
+		pygame.display.flip()
+		self.screen.blit(self.background, (0, 0))
+		time.sleep(4)
+		pygame.draw.circle(self.screen, (255,255,255), (400,300), 5, 0)
+		pygame.display.flip()
+		self.screen.blit(self.background, (0, 0))
 
-#			Instructions
-			self.draw_text("Preparation stage: Instrunctions")
-			self.draw_text("Inhale:7s Retain:7 Exhale:7ec",(100,255,100),dh = -self.width // 10)
-			self.draw_text("Do it until the sound stops",(100,255,100),dh = -self.width // 6)
-			self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 4)
-			pygame.display.flip()
-			self.screen.blit(self.background, (0, 0))	
-			y = self.getDataO(2)
-#			Credits to Mike Koenig
-			pygame.mixer.music.load('drop.mp3')
-			pygame.mixer.music.play(0)
-			with open('relajacion1.json', 'w') as fp:
-			    json.dump(y, fp)
+#		Se obtienen los datos
+		del y 
+		y = self.getDataO(7)
+#		Se guardan los datos
+		with open('concentration1.json', 'w') as fp:
+		    json.dump(y, fp)
+#		Etapa de relajacion 
+		self.draw_text("Relax")
+		pygame.display.flip()
+		self.screen.blit(self.background, (0, 0))
+#		Se obtienen los datos
+		del y
+		y = self.getDataO(7)
+#		Se guardan los datos
+		with open('Relajacion2.json', 'w') as fp:
+		    json.dump(y, fp)
+#		Etapa de concentracion 2
+		self.draw_text("Imagine que mueve el cuadrado")
+		pygame.display.flip()
+		self.screen.blit(self.background, (0, 0))
+		time.sleep(4)
+		pygame.draw.rect(self.screen, (255,255,255), [400, 300, 100, 100],0)
+		pygame.display.flip()
+		self.screen.blit(self.background, (0, 0))
 
-			self.draw_text("Concentrese en el punto")
-			pygame.display.flip()
-			self.screen.blit(self.background, (0, 0))
-			time.sleep(2)
-			pygame.draw.circle(self.screen, (255,255,255), (400,300), 5, 0)
-			pygame.display.flip()
-			self.screen.blit(self.background, (0, 0))
-			del y		
-			y = self.getDataO(5)
-			with open('concentration.json', 'w') as fp:
-			    json.dump(y, fp)
+#		Se obtienen los datos
+		del y 
+		y = self.getDataO(7)
+#		Se guardan los datos
+		with open('concentration2.json', 'w') as fp:
+		    json.dump(y, fp)
 
-			self.draw_text("Relax")
-			pygame.display.flip()
-			self.screen.blit(self.background, (0, 0))
-			del y
-			y = self.getDataO(5)
-			with open('Relajacion2.json', 'w') as fp:
-			    json.dump(y, fp)
+
 
 	def getDataO(self, tm):
 		fs = 128.0     #Frecuencia de muestreo
