@@ -74,9 +74,12 @@ class game(object):
 		pygame.mixer.music.load('drop.mp3')
 #		Instructions - Etapa de relajacion 1
 		self.draw_text("Preparation stage: Instrunctions")
-		self.draw_text("Inhale:7s Retain:7 Exhale:7ec",(100,255,100),dh = -self.width // 10)
-		self.draw_text("Do it until the sound stops",(100,255,100),dh = -self.width // 6)
-		self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 4)
+		self.draw_text("Inhale:7s Retain:7 Exhale:7 segundos",(100,255,100),dh = -self.width // 10)
+		pygame.display.flip()
+		time.sleep(3)
+		self.screen.blit(self.background, (0, 0))
+		self.draw_text("Do it until the sound stops",(100,255,100))
+		self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 6)
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))	
 #		Se obtienen los datos
@@ -115,7 +118,7 @@ class game(object):
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))
 		time.sleep(4)
-		pygame.draw.rect(self.screen, (255,255,255), [400, 300, 100, 100],0)
+		pygame.draw.rect(self.screen, (255,255,255), [self.width//2 - 50,self.height//2 - 50, 100, 100],0)
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))
 
