@@ -69,6 +69,7 @@ class game(object):
 		self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
 	def  preparation(self):
+		dv = 1 # Dispositivo Seleccionado	
 #		Credits to Mike Koenig - Se carga la cancion 
 		pygame.mixer.music.load('drop.mp3')
 #		Instructions - Etapa de relajacion 1
@@ -79,7 +80,7 @@ class game(object):
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))	
 #		Se obtienen los datos
-		y = self.getDataO(25)
+		y = self.getDataO(25,dv)
 		pygame.mixer.music.play(0)
 #		Se guardan los datos
 		with open('relajacion1.json', 'w') as fp:
@@ -95,7 +96,7 @@ class game(object):
 
 #		Se obtienen los datos
 		del y 
-		y = self.getDataO(7)
+		y = self.getDataO(7,dv)
 #		Se guardan los datos
 		with open('concentration1.json', 'w') as fp:
 		    json.dump(y, fp)
@@ -105,7 +106,7 @@ class game(object):
 		self.screen.blit(self.background, (0, 0))
 #		Se obtienen los datos
 		del y
-		y = self.getDataO(7)
+		y = self.getDataO(7,dv)
 #		Se guardan los datos
 		with open('Relajacion2.json', 'w') as fp:
 		    json.dump(y, fp)
@@ -120,7 +121,7 @@ class game(object):
 
 #		Se obtienen los datos
 		del y 
-		y = self.getDataO(7)
+		y = self.getDataO(7,dv)
 #		Se guardan los datos
 		with open('concentration2.json', 'w') as fp:
 		    json.dump(y, fp)
