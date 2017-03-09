@@ -128,7 +128,7 @@ class game(object):
 
 
 	def getDataO(self, tm, disp):
-		if disp = 1 :
+		if disp == 1 :
 			fs = 128.0     #Frecuencia de muestreo
 			N = fs*tm     #Numero de muestras
 			ct = 0        #Contador
@@ -160,7 +160,7 @@ class game(object):
 					pass
 			return dicx
 		
-		if disp = 0 : 
+		if disp == 0 : 
 			stream_name = 'NIC'
 			streams = resolve_stream('type', 'EEG')
 			fs = 500 # Frecuencia de muestreo
