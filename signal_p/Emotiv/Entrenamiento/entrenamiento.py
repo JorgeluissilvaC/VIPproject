@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time 
 import json
+from pylsl import StreamInlet, resolve_stream
 
 class game(object):
 
