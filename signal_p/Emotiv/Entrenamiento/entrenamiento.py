@@ -14,15 +14,14 @@ import json
 
 class game(object):
 
-	def __init__ (self, width=800, height=600, fps=30):
+	def __init__ (self, width = 800, height = 600, na_me = "Unknown", fps = 30):
 		"""Initialize pygame, window, background, font,...
-
-
 		"""
 		pygame.init()
 		pygame.display.set_caption("VIP: BCI")
 		self.width = width
 		self.height = height
+		self.na_me = na_me
 		#self.height = width // 4
 		self.dimensions = (self.width, self.height)
 		self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
@@ -35,8 +34,6 @@ class game(object):
 
 	def run(self):
 		"""The mainloop
-
-
 		"""
 		running = True
 		while running:
@@ -70,9 +67,9 @@ class game(object):
 
 	def  preparation(self):
 		dv = 1 # Dispositivo Seleccionado	
-#		Credits to Mike Koenig - Se carga la cancion 
+		#	Credits to Mike Koenig - Se carga la cancion 
 		pygame.mixer.music.load('drop.mp3')
-#		Instructions - Etapa de relajacion 1
+		#	Instructions - Etapa de relajacion 1
 		self.draw_text("Preparation stage: Instrunctions")
 		self.draw_text("Inhale:7s Retain:7 Exhale:7 segundos",(100,255,100),dh = -self.width // 10)
 		pygame.display.flip()
@@ -82,13 +79,13 @@ class game(object):
 		self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 6)
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))	
-#		Se obtienen los datos
+		#	Se obtienen los datos
 		y = self.getDataO(25,dv)
 		pygame.mixer.music.play(0)
-#		Se guardan los datos
+		#	Se guardan los datos
 		with open('relajacion1.json', 'w') as fp:
 		    json.dump(y, fp)
-#		Etapa de concentracion 
+		#	Etapa de concentracion 
 		self.draw_text("Concentrese en el punto")
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))
@@ -97,23 +94,23 @@ class game(object):
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))
 
-#		Se obtienen los datos
+		#	Se obtienen los datos
 		del y 
 		y = self.getDataO(7,dv)
-#		Se guardan los datos
+		#		Se guardan los datos
 		with open('concentration1.json', 'w') as fp:
 		    json.dump(y, fp)
-#		Etapa de relajacion 
+		#	Etapa de relajacion 
 		self.draw_text("Relax")
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))
-#		Se obtienen los datos
+		#	Se obtienen los datos
 		del y
 		y = self.getDataO(7,dv)
-#		Se guardan los datos
+		#	Se guardan los datos
 		with open('Relajacion2.json', 'w') as fp:
 		    json.dump(y, fp)
-#		Etapa de concentracion 2
+		#	Etapa de concentracion 2
 		self.draw_text("Imagine que mueve el cuadrado")
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))
@@ -122,10 +119,10 @@ class game(object):
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))
 
-#		Se obtienen los datos
+		#	Se obtienen los datos
 		del y 
 		y = self.getDataO(7,dv)
-#		Se guardan los datos
+		#	Se guardan los datos
 		with open('concentration2.json', 'w') as fp:
 		    json.dump(y, fp)
 
@@ -196,6 +193,11 @@ class game(object):
 			        dic[electrodos+1].append(muestra[electrodos])
 
 			return dic
+	def saveDataDB(data_dic):
+		pass
+
+
 
 if __name__ == '__main__':
-	game(800,600).run()
+	na = raw_input("Nombre de la persona: ")
+	game(800,600,na_me = na).run()
