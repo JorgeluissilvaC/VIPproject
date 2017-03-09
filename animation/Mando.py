@@ -49,7 +49,7 @@ while not hecho:
                 x=x+r
                 pygame.draw.rect(pantalla, ROJO, [x, y, 50, 50])
     # --- LA LÓGICA DEL JUEGO DEBERÍA IR AQUÍ
-  
+
     # --- EL CÓDIGO DE DIBUJO DEBERÍA IR AQUÍ
     
     # Primero, limpia la pantalla con blanco. No vayas a poner otros comandos de dibujo encima 

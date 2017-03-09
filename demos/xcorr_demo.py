@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 np.random.seed(0)
 
 x, y = np.random.randn(2, 100)
