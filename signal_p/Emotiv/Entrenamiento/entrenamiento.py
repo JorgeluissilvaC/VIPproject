@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Script entrenamiento para los dos dispositivos Emotiv Epoc & Starstim
+disp = 1 Emotiv 
+disp = 0 Starstim
+"""
 import pygame 
 from emokit.emotiv import Emotiv
 from scipy import signal
@@ -121,38 +126,72 @@ class game(object):
 		    json.dump(y, fp)
 
 
+	def getDataO(self, tm, disp):
+		if disp = 1 :
+			fs = 128.0     #Frecuencia de muestreo
+			N = fs*tm     #Numero de muestras
+			ct = 0        #Contador
+			dt = []       #Vector de datos
+			with Emotiv(display_output=False, verbose=True) as headset:
+				while ct < N:
+					packet = headset.dequeue()
+					if packet is not None:
+						# print packet.sensors
+						# print "########################" 
+						dic = {}
+						for key, value in packet.sensors.iteritems():
+							value = packet.sensors[key]['value']
+							quality = packet.sensors[key]['quality']
+							dic[key] = (value,quality)                
+						dt.append(dic)                
+						ct+=1
+					time.sleep(0.007)
+			ldic = dt
+			dicx = ldic[0].copy()
+			for key,value in dicx.iteritems():
+				dicx[key] = []
 
-	def getDataO(self, tm):
-		fs = 128.0     #Frecuencia de muestreo
-		N = fs*tm     #Numero de muestras
-		ct = 0        #Contador
-		dt = []       #Vector de datos
-		with Emotiv(display_output=False, verbose=True) as headset:
-			while ct < N:
-				packet = headset.dequeue()
-				if packet is not None:
-					# print packet.sensors
-					# print "########################" 
-					dic = {}
-					for key, value in packet.sensors.iteritems():
-						value = packet.sensors[key]['value']
-						quality = packet.sensors[key]['quality']
-						dic[key] = (value,quality)                
-					dt.append(dic)                
-					ct+=1
-				time.sleep(0.007)
-		ldic = dt
-		dicx = ldic[0].copy()
-		for key,value in dicx.iteritems():
-			dicx[key] = []
+			for i in ldic:
+				for key, value in i.iteritems():
+					value = i[key][0]
+					quality = i[key][1]
+					dicx[key].append((quality,value))
+					pass
+			return dicx
+		
+		if disp = 0 : 
+			stream_name = 'NIC'
+			streams = resolve_stream('type', 'EEG')
+			fs = 500 # Frecuencia de muestreo
+			N=fs*tm #Numero de muestras 
+			c=0;
+			muestras = []
+			try:
+				for i in range (len(streams)):
 
-		for i in ldic:
-			for key, value in i.iteritems():
-				value = i[key][0]
-				quality = i[key][1]
-				dicx[key].append((quality,value))
-				pass
-		return dicx
+					if (streams[i].name() == stream_name):
+						index = i
+						print ("NIC stream available")
+
+				print ("Connecting to NIC stream... \n")
+				inlet = StreamInlet(streams[index])   
+
+			except NameError:
+				print ("Error: NIC stream not available\n\n\n")
+
+			while c<N:
+			    sample, timestamp = inlet.pull_sample()
+			    muestras.append(sample)
+			    c+=1
+			    
+			#Diccionario con los datos de los electrodos
+			dic = {} 
+			for electrodos in range(0,len(sample)):
+			    dic[electrodos+1] = []
+			    for muestra in muestras:
+			        dic[electrodos+1].append(muestra[electrodos])
+
+			return dic
 
 if __name__ == '__main__':
 	game(800,600).run()
