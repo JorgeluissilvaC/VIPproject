@@ -12,10 +12,11 @@ import numpy as np
 import time 
 import json
 from pylsl import StreamInlet, resolve_stream
+import sqlite
 
 class game(object):
 
-	def __init__ (self, width = 800, height = 600, na_me = "Unknown", fps = 30):
+	def __init__ (self, n, width = 800, height = 600, na_me = "Unknown", fps = 30):
 		"""Initialize pygame, window, background, font,...
 		"""
 		pygame.init()
@@ -81,7 +82,7 @@ class game(object):
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))	
 		#	Se obtienen los datos
-		y = self.getDataO(25,dv)
+		y,dic_raw = self.getDataO(25,dv)
 		pygame.mixer.music.play(0)
 		#	Se guardan los datos
 		with open('relajacion1.json', 'w') as fp:
@@ -97,7 +98,7 @@ class game(object):
 
 		#	Se obtienen los datos
 		del y 
-		y = self.getDataO(7,dv)
+		y,dic_raw = self.getDataO(7,dv)
 		#		Se guardan los datos
 		with open('concentration1.json', 'w') as fp:
 		    json.dump(y, fp)
@@ -107,7 +108,7 @@ class game(object):
 		self.screen.blit(self.background, (0, 0))
 		#	Se obtienen los datos
 		del y
-		y = self.getDataO(7,dv)
+		y,dic_raw = self.getDataO(7,dv)
 		#	Se guardan los datos
 		with open('Relajacion2.json', 'w') as fp:
 		    json.dump(y, fp)
@@ -122,7 +123,7 @@ class game(object):
 
 		#	Se obtienen los datos
 		del y 
-		y = self.getDataO(7,dv)
+		y ,dic_raw= self.getDataO(7,dv)
 		#	Se guardan los datos
 		with open('concentration2.json', 'w') as fp:
 		    json.dump(y, fp)
@@ -148,7 +149,7 @@ class game(object):
 						dt.append(dic)                
 						ct+=1
 					time.sleep(0.007)
-			ldic = dt
+			ldic = dt[:]
 			dicx = ldic[0].copy()
 			for key,value in dicx.iteritems():
 				dicx[key] = []
@@ -159,7 +160,7 @@ class game(object):
 					quality = i[key][1]
 					dicx[key].append((quality,value))
 					pass
-			return dicx
+			return dicx, ldic
 		
 		if disp == 0 : 
 			stream_name = 'NIC'
@@ -194,11 +195,65 @@ class game(object):
 			        dic[electrodos+1].append(muestra[electrodos])
 
 			return dic
-	def saveDataDB(data_dic):
-		pass
+	def saveDataDB(list_of_dic):
+		conn = sqlite3.connect('database.db') #connection object
+		c = conn.cursor()
+		# Create table
+		c.execute('''CREATE TABLE '''+n+"_"+self.na_me+'''
+			(n_sample INTEGER PRIMARY KEY,
+            AF3 REAL NOT NULL,
+            AF4 REAL NOT NULL,
+            F3 REAL NOT NULL,
+            F4 REAL NOT NULL,
+            F7 REAL NOT NULL,
+            F8 REAL NOT NULL,
+            FC5 REAL NOT NULL,
+            FC6 REAL NOT NULL,
+            T7 REAL NOT NULL,
+            T8 REAL NOT NULL,
+            P7 REAL NOT NULL,
+            P8 REAL NOT NULL,
+            O1 REAL NOT NULL,
+            O2 REAL NOT NULL,)''')
 
-
-
+		for n in list_of_dic :
+			sn = [0]*14
+			for key, value in n.iteritems():
+				if key == "AF3":
+					sn[0] = value[0]
+				elif key == "AF4":
+					sn[1] = value[0]
+				elif key == "F3":
+					sn[2] = value[0]
+				elif key == "F4":
+					sn[3] = value[0]
+				elif key == "F7":
+					sn[4] = value[0]
+				elif key == "F8":
+					sn[5] = value[0]
+				elif key == "FC5":
+					sn[6] = value[0]
+				elif key == "FC6":
+					sn[7] = value[0]
+				elif key == "T7":
+					sn[8] = value[0]
+				elif key == "T8":
+					sn[9] = value[0]
+				elif key == "P7":
+					sn[10] = value[0]
+				elif key == "P8":
+					sn[11] = value[0]
+				elif key == "01":
+					sn[12] = value[0]
+				elif key == "02":
+					sn[13] = value[0]
+			c.execute = ('''INSERT INTO '''+n+"_"+self.na_me+''' VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn)
+			conn.commit()
+		conn.close()
+		print "new table: '"+n+"_"+self.na_me+"' in the db"
 if __name__ == '__main__':
-	na = raw_input("Nombre de la persona: ")
-	game(800,600,na_me = na).run()
+	n = 0
+	while(True):
+		na = raw_input("Nombre de la persona: ")
+		game(n, 800,600,na_me = na).run()
+		n += 1
