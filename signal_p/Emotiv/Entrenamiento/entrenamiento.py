@@ -23,6 +23,7 @@ class game(object):
         pygame.display.set_caption("VIP: BCI")
         self.width = width
         self.height = height
+        self.n = n
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
         self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
@@ -199,59 +200,61 @@ class game(object):
         conn = sqlite3.connect('database.db') #connection object
         c = conn.cursor()
         # Create table
-        c.execute('''CREATE TABLE '''+"s"+n+"_"+test_type+'''
-            (n_sample INTEGER PRIMARY KEY,
-                  AF3 REAL NOT NULL,
-                  AF4 REAL NOT NULL,
-                  F3 REAL NOT NULL,
-                  F4 REAL NOT NULL,
-                  F7 REAL NOT NULL,
-                  F8 REAL NOT NULL,
-                  FC5 REAL NOT NULL,
-                  FC6 REAL NOT NULL,
-                  T7 REAL NOT NULL,
-                  T8 REAL NOT NULL,
-                  P7 REAL NOT NULL,
-                  P8 REAL NOT NULL,
-                  O1 REAL NOT NULL,
-                  O2 REAL NOT NULL)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS '''+"s"+self.n+'''
+                (n_sample INTEGER PRIMARY KEY,
+                test_type TEXT NOT NULL,
+                AF3 REAL NOT NULL,
+                AF4 REAL NOT NULL,
+                F3 REAL NOT NULL,
+                F4 REAL NOT NULL,
+                F7 REAL NOT NULL,
+                F8 REAL NOT NULL,
+                FC5 REAL NOT NULL,
+                FC6 REAL NOT NULL,
+                T7 REAL NOT NULL,
+                T8 REAL NOT NULL,
+                P7 REAL NOT NULL,
+                P8 REAL NOT NULL,
+                O1 REAL NOT NULL,
+                O2 REAL NOT NULL)''')
 
         for n_s in list_of_dic :
-            sn = [0]*14
+            sn = [0]*15
+            sn[0] = test_type
             for key, value in n_s.iteritems():
                 if key == "AF3":
-                    sn[0] = value[0]
-                elif key == "AF4":
                     sn[1] = value[0]
-                elif key == "F3":
+                elif key == "AF4":
                     sn[2] = value[0]
-                elif key == "F4":
+                elif key == "F3":
                     sn[3] = value[0]
-                elif key == "F7":
+                elif key == "F4":
                     sn[4] = value[0]
-                elif key == "F8":
+                elif key == "F7":
                     sn[5] = value[0]
-                elif key == "FC5":
+                elif key == "F8":
                     sn[6] = value[0]
-                elif key == "FC6":
+                elif key == "FC5":
                     sn[7] = value[0]
-                elif key == "T7":
+                elif key == "FC6":
                     sn[8] = value[0]
-                elif key == "T8":
+                elif key == "T7":
                     sn[9] = value[0]
-                elif key == "P7":
+                elif key == "T8":
                     sn[10] = value[0]
-                elif key == "P8":
+                elif key == "P7":
                     sn[11] = value[0]
-                elif key == "01":
+                elif key == "P8":
                     sn[12] = value[0]
-                elif key == "02":
+                elif key == "01":
                     sn[13] = value[0]
+                elif key == "02":
+                    sn[14] = value[0]
 
-            c.execute('''INSERT INTO '''+"s"+n+"_"+test_type+''' VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn)
+            c.execute('''INSERT INTO '''+"s"+self.n+''' VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn)
             conn.commit()
         conn.close()
-        print "[!]New table: '"+"s"+n+"_"+test_type+"' added to the db"
+        print "[!]Table: '"+"s"+self.n+"' added/updated"
 
 if __name__ == '__main__':
     n = 0
