@@ -42,3 +42,6 @@ def GetDataO(tm):
             dicx[key].append((quality,value))
             pass
     return dicx
+
+data = GetDataO(2)
+print data

@@ -26,7 +26,7 @@ class game(object):
         self.n = n
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
-        self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.clock = pygame.time.Clock()
         self.fps = fps
@@ -85,12 +85,8 @@ class game(object):
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))   
         #   Se obtienen los datos
-        y,dic_raw = self.getDataO(trela1)
+        r0 = self.getDataO(trela1)
         #pygame.mixer.music.play(0)
-        #   Se guardan los datos
-        # with open('relajacion1.json', 'w') as fp:
-        #     json.dump(y, fp)
-        self.saveDataDB(dic_raw, "r0")
         #   Etapa de concentracion 
         self.draw_text("Concentrese en el punto")
         pygame.display.flip()
@@ -99,25 +95,14 @@ class game(object):
         pygame.draw.circle(self.screen, (255,255,255), (400,300), 5, 0)
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-
         #   Se obtienen los datos
-        del y , dic_raw
-        y,dic_raw = self.getDataO(tcont1)
-        #       Se guardan los datos
-        # with open('concentration1.json', 'w') as fp:
-        #     json.dump(y, fp)
-        self.saveDataDB(dic_raw, "c0")
+        c0 = self.getDataO(tcont1)
         #   Etapa de relajacion 
         self.draw_text("Relax")
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
         #   Se obtienen los datos
-        del y, dic_raw
-        y,dic_raw = self.getDataO(trela2)
-        #   Se guardan los datos
-        # with open('Relajacion2.json', 'w') as fp:
-        #     json.dump(y, fp)
-        self.saveDataDB(dic_raw, "r1")        
+        r1 = self.getDataO(trela2)
         #   Etapa de concentracion 2
         self.draw_text("Imagine que mueve el cuadrado")
         pygame.display.flip()
@@ -126,14 +111,13 @@ class game(object):
         pygame.draw.rect(self.screen, (255,255,255), [self.width//2 - 50,self.height//2 - 50, 100, 100],0)
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-
         #   Se obtienen los datos
-        del y , dic_raw
-        y ,dic_raw= self.getDataO(tcont2)
+        c1 = self.getDataO(tcont2)
         #   Se guardan los datos
-        with open('concentration2.json', 'w') as fp:
-            json.dump(y, fp)
-        
+        self.saveDataDB(r0, "r0")
+        self.saveDataDB(c0, "c0")
+        self.saveDataDB(c1, "c1")
+        self.saveDataDB(r1, "r1") 
 
     def getDataO(self, tm):
         fs = 128.0    #Frecuencia de muestreo
@@ -154,18 +138,8 @@ class game(object):
                     dt.append(dic)                
                     ct+=1
                 time.sleep(0.007)
-        ldic = dt[:]
-        dicx = ldic[0].copy()
-        for key,value in dicx.iteritems():
-            dicx[key] = []
-
-        for i in ldic:
-            for key, value in i.iteritems():
-                value = i[key][0]
-                quality = i[key][1]
-                dicx[key].append((quality,value))
-                pass
-        return dicx, ldic
+                
+        return dt
 
     def saveDataDB(self, list_of_dic, test_type):
         conn = sqlite3.connect('database.db') #connection object
