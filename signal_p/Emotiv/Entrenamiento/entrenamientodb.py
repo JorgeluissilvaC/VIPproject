@@ -12,7 +12,7 @@ import numpy as np
 import time 
 import json
 from pylsl import StreamInlet, resolve_stream
-import sqlite
+import sqlite3
 
 class game(object):
 
@@ -69,7 +69,11 @@ class game(object):
 
     def  preparation(self):  
         #   Credits to Mike Koenig - Se carga la cancion 
-        pygame.mixer.music.load('drop.mp3')
+        #pygame.mixer.music.load('drop.mp3')
+        trela1 = 2
+        trela2 = 2
+        tcont1 = 2
+        tcont2 = 2
         #   Instructions - Etapa de relajacion 1
         self.draw_text("Preparation stage: Instrunctions")
         self.draw_text("Inhale:7s Retain:7s Exhale:7s",(100,255,100),dh = -self.width // 10)
@@ -81,12 +85,12 @@ class game(object):
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))   
         #   Se obtienen los datos
-        y,dic_raw = self.getDataO(25)
-        pygame.mixer.music.play(0)
+        y,dic_raw = self.getDataO(trela1)
+        #pygame.mixer.music.play(0)
         #   Se guardan los datos
         # with open('relajacion1.json', 'w') as fp:
         #     json.dump(y, fp)
-        saveDataDB(dic_raw, "r0")
+        self.saveDataDB(dic_raw, "r0")
         #   Etapa de concentracion 
         self.draw_text("Concentrese en el punto")
         pygame.display.flip()
@@ -98,22 +102,22 @@ class game(object):
 
         #   Se obtienen los datos
         del y , dic_raw
-        y,dic_raw = self.getDataO(7)
+        y,dic_raw = self.getDataO(tcont1)
         #       Se guardan los datos
         # with open('concentration1.json', 'w') as fp:
         #     json.dump(y, fp)
-        saveDataDB(dic_raw, "c0")
+        self.saveDataDB(dic_raw, "c0")
         #   Etapa de relajacion 
         self.draw_text("Relax")
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
         #   Se obtienen los datos
         del y, dic_raw
-        y,dic_raw = self.getDataO(7)
+        y,dic_raw = self.getDataO(trela2)
         #   Se guardan los datos
         # with open('Relajacion2.json', 'w') as fp:
         #     json.dump(y, fp)
-        saveDataDB(dic_raw, "r1")        
+        self.saveDataDB(dic_raw, "r1")        
         #   Etapa de concentracion 2
         self.draw_text("Imagine que mueve el cuadrado")
         pygame.display.flip()
@@ -125,7 +129,7 @@ class game(object):
 
         #   Se obtienen los datos
         del y , dic_raw
-        y ,dic_raw= self.getDataO(7)
+        y ,dic_raw= self.getDataO(tcont2)
         #   Se guardan los datos
         with open('concentration2.json', 'w') as fp:
             json.dump(y, fp)
@@ -163,7 +167,7 @@ class game(object):
                 pass
         return dicx, ldic
 
-    def saveDataDB(list_of_dic, test_type):
+    def saveDataDB(self, list_of_dic, test_type):
         conn = sqlite3.connect('database.db') #connection object
         c = conn.cursor()
         # Create table
