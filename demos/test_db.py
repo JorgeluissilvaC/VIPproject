@@ -56,7 +56,7 @@ for n_s in list_of_dic :
     sn[0] = test_type
 
     for key, value in n_s.iteritems():
-        print(key+": "+str(value[0]))
+        #print(key+": "+str(value[0]))
 
         if key == "AF3":
             sn[1] = value[0]
@@ -86,8 +86,14 @@ for n_s in list_of_dic :
             sn[13] = value[0]
         elif key == "02":
             sn[14] = value[0]
-        print sn
+        #print sn
     c.execute('''INSERT INTO '''+"s"+n+''' VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn)
     conn.commit()
+
+    c.execute('''select * from '''+"s"+n)
+    print("hi")
+    data = c.fetchall()
+    for row in data:
+        print row
 conn.close()
 print "[!]Table: '"+"s"+n+"' added/updated"

@@ -12,18 +12,16 @@ import numpy as np
 import time 
 import json
 from pylsl import StreamInlet, resolve_stream
-import sqlite
 
 class game(object):
 
-    def __init__ (self, n, width = 800, height = 600, fps = 30):
+    def __init__ (self, width = 800, height = 600, fps = 30):
         """Initialize pygame, window, background, font,...
         """
         pygame.init()
         pygame.display.set_caption("VIP: BCI")
         self.width = width
         self.height = height
-        self.n = n
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
         self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
@@ -82,7 +80,7 @@ class game(object):
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))   
         #   Se obtienen los datos
-        y,dic_raw = self.getDataO(25,dv)
+        y = self.getDataO(25,dv)
         pygame.mixer.music.play(0)
         #   Se guardan los datos
         with open('relajacion1.json', 'w') as fp:
@@ -98,7 +96,7 @@ class game(object):
 
         #   Se obtienen los datos
         del y 
-        y,dic_raw = self.getDataO(7,dv)
+        y = self.getDataO(7,dv)
         #       Se guardan los datos
         with open('concentration1.json', 'w') as fp:
             json.dump(y, fp)
@@ -108,7 +106,7 @@ class game(object):
         self.screen.blit(self.background, (0, 0))
         #   Se obtienen los datos
         del y
-        y,dic_raw = self.getDataO(7,dv)
+        y = self.getDataO(7,dv)
         #   Se guardan los datos
         with open('Relajacion2.json', 'w') as fp:
             json.dump(y, fp)
@@ -123,15 +121,15 @@ class game(object):
 
         #   Se obtienen los datos
         del y 
-        y ,dic_raw= self.getDataO(7,dv)
+        y = self.getDataO(7,dv)
         #   Se guardan los datos
         with open('concentration2.json', 'w') as fp:
             json.dump(y, fp)
-
+        
 
     def getDataO(self, tm, disp):
         if disp == 1 :
-            fs = 128.0     #Frecuencia de muestreo
+            fs = 128.0    #Frecuencia de muestreo
             N = fs*tm     #Numero de muestras
             ct = 0        #Contador
             dt = []       #Vector de datos
@@ -160,7 +158,7 @@ class game(object):
                     quality = i[key][1]
                     dicx[key].append((quality,value))
                     pass
-            return dicx, ldic
+            return dicx
         
         if disp == 0 : 
             stream_name = 'NIC'
@@ -196,68 +194,7 @@ class game(object):
 
             return dic
 
-    def saveDataDB(list_of_dic, test_type):
-        conn = sqlite3.connect('database.db') #connection object
-        c = conn.cursor()
-        # Create table
-        c.execute('''CREATE TABLE IF NOT EXISTS '''+"s"+self.n+'''
-                (n_sample INTEGER PRIMARY KEY,
-                test_type TEXT NOT NULL,
-                AF3 REAL NOT NULL,
-                AF4 REAL NOT NULL,
-                F3 REAL NOT NULL,
-                F4 REAL NOT NULL,
-                F7 REAL NOT NULL,
-                F8 REAL NOT NULL,
-                FC5 REAL NOT NULL,
-                FC6 REAL NOT NULL,
-                T7 REAL NOT NULL,
-                T8 REAL NOT NULL,
-                P7 REAL NOT NULL,
-                P8 REAL NOT NULL,
-                O1 REAL NOT NULL,
-                O2 REAL NOT NULL)''')
-
-        for n_s in list_of_dic :
-            sn = [0]*15
-            sn[0] = test_type
-            for key, value in n_s.iteritems():
-                if key == "AF3":
-                    sn[1] = value[0]
-                elif key == "AF4":
-                    sn[2] = value[0]
-                elif key == "F3":
-                    sn[3] = value[0]
-                elif key == "F4":
-                    sn[4] = value[0]
-                elif key == "F7":
-                    sn[5] = value[0]
-                elif key == "F8":
-                    sn[6] = value[0]
-                elif key == "FC5":
-                    sn[7] = value[0]
-                elif key == "FC6":
-                    sn[8] = value[0]
-                elif key == "T7":
-                    sn[9] = value[0]
-                elif key == "T8":
-                    sn[10] = value[0]
-                elif key == "P7":
-                    sn[11] = value[0]
-                elif key == "P8":
-                    sn[12] = value[0]
-                elif key == "01":
-                    sn[13] = value[0]
-                elif key == "02":
-                    sn[14] = value[0]
-
-            c.execute('''INSERT INTO '''+"s"+self.n+''' VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn)
-            conn.commit()
-        conn.close()
-        print "[!]Table: '"+"s"+self.n+"' added/updated"
-
 if __name__ == '__main__':
-    n = 0
-    while(True):
-        game(str(n), 800, 600).run()
-        n += 1
+
+    game(800, 600).run()
+
