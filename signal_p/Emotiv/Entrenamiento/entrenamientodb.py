@@ -1,8 +1,8 @@
+
 # -*- coding: utf-8 -*-
+# encoding: utf-8
 """
-Script entrenamiento para los dos dispositivos Emotiv Epoc & Starstim
-disp = 1 Emotiv 
-disp = 0 Starstim
+Script entrenamiento para los dos dispositivos Emotiv Epoc
 """
 import pygame 
 from emokit.emotiv import Emotiv
@@ -13,6 +13,7 @@ import time
 import json
 from pylsl import StreamInlet, resolve_stream
 import sqlite3
+# import winsound
 
 class game(object):
 
@@ -46,12 +47,10 @@ class game(object):
                     if event.key == pygame.K_ESCAPE:
                         running = False
                     elif event.key == pygame.K_s:
-                        print ("Preparation stage started")
+                        print ("[!] Preparation stage started")
                         self.preparation()
-                        print ("Preparation stage Finished")
-                    elif event.key == pygame.K_t:
-                        print ("Training stage started")
-                        print ("Training stage finished")
+                        print ("[!] Preparation stage Finished")
+                        self.n = str(int(self.n) + 1)
             milliseconds = self.clock.tick(self.fps)
             self.playtime += milliseconds / 1000.0
             self.draw_text("BCI")
@@ -68,25 +67,26 @@ class game(object):
         self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
     def  preparation(self):  
-        #   Credits to Mike Koenig - Se carga la cancion 
-        #pygame.mixer.music.load('drop.mp3')
-        trela1 = 2
-        trela2 = 2
-        tcont1 = 2
-        tcont2 = 2
+        # Delays and constants
+        trela1 = 5
+        trela2 = 5
+        tcont1 = 5
+        tcont2 = 5
+        freq = 60 #Hz
+        t = 1000 #miliseconds
         #   Instructions - Etapa de relajacion 1
-        self.draw_text("Preparation stage: Instrunctions")
-        self.draw_text("Inhale:7s Retain:7s Exhale:7s",(100,255,100),dh = -self.width // 10)
+        self.draw_text("Etapa de preparación: Instrucciones")
+        self.draw_text("Inhale:7s Mantenga:7s Exhale:7s",(100,255,100),dh = -self.width // 10)
         pygame.display.flip()
         time.sleep(3)
         self.screen.blit(self.background, (0, 0))
-        self.draw_text("Do it until you hear the alert sound",(100,255,100))
-        self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 6)
+        self.draw_text("Hagalo hasta escuchar una alerta de sonido",(100,255,100))
+        self.draw_text("Cierre los ojos",(100,255,100),dh = -self.width // 6)
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))   
         #   Se obtienen los datos
         r0 = self.getDataO(trela1)
-        #pygame.mixer.music.play(0)
+        # winsound.Beep(freq,t)
         #   Etapa de concentracion 
         self.draw_text("Concentrese en el punto")
         pygame.display.flip()
@@ -98,9 +98,10 @@ class game(object):
         #   Se obtienen los datos
         c0 = self.getDataO(tcont1)
         #   Etapa de relajacion 
-        self.draw_text("Relax")
+        self.draw_text("Relajese")
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
+        time.sleep(1)
         #   Se obtienen los datos
         r1 = self.getDataO(trela2)
         #   Etapa de concentracion 2
@@ -163,7 +164,7 @@ class game(object):
                 P8 REAL NOT NULL,
                 O1 REAL NOT NULL,
                 O2 REAL NOT NULL)''')
-
+        sn_m = []
         for n_s in list_of_dic :
             sn = [0]*15
             sn[0] = test_type
@@ -196,14 +197,14 @@ class game(object):
                     sn[13] = value[0]
                 elif key == "02":
                     sn[14] = value[0]
-
-            c.execute('''INSERT INTO '''+"s"+self.n+''' VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn)
-            conn.commit()
+            sn_m.append(tuple(sn))
+        #print sn_m
+        c.executemany('''INSERT INTO '''+"s"+self.n+''' VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn_m)
+        conn.commit()
         conn.close()
         print "[!]Table: '"+"s"+self.n+"' added/updated"
 
 if __name__ == '__main__':
     n = 0
-    while(True):
-        game(str(n), 800, 600).run()
-        n += 1
+    game(str(n), 800, 600).run()
+
