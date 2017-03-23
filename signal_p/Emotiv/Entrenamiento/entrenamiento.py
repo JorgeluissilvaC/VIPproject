@@ -24,7 +24,8 @@ class game(object):
         self.height = height
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
-        self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
+        #self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.clock = pygame.time.Clock()
         self.fps = fps
@@ -70,13 +71,13 @@ class game(object):
         #   Credits to Mike Koenig - Se carga la cancion 
         pygame.mixer.music.load('drop.mp3')
         #   Instructions - Etapa de relajacion 1
-        self.draw_text("Preparation stage: Instrunctions")
-        self.draw_text("Inhale:7s Retain:7 Exhale:7 segundos",(100,255,100),dh = -self.width // 10)
+        self.draw_text("Etapa de preparación: Instrucciones")
+        self.draw_text("Inhale:7s Mantenga:7s Exhale:7s",(100,255,100),dh = -self.width // 10)
         pygame.display.flip()
         time.sleep(3)
         self.screen.blit(self.background, (0, 0))
-        self.draw_text("Do it until the sound stops",(100,255,100))
-        self.draw_text("Close your eyes",(100,255,100),dh = -self.width // 6)
+        self.draw_text("Hagalo hasta escuchar una alerta de sonido",(100,255,100))
+        self.draw_text("Cierre los ojos",(100,255,100),dh = -self.width // 6)
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))   
         #   Se obtienen los datos
@@ -101,7 +102,7 @@ class game(object):
         with open('concentration1.json', 'w') as fp:
             json.dump(y, fp)
         #   Etapa de relajacion 
-        self.draw_text("Relax")
+        self.draw_text("Relajese")
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
         #   Se obtienen los datos
@@ -127,7 +128,7 @@ class game(object):
             json.dump(y, fp)
         
 
-    def getDataO(self, tm, disp):
+    def getDataO(self,tm,disp):
         if disp == 1 :
             fs = 128.0    #Frecuencia de muestreo
             N = fs*tm     #Numero de muestras
