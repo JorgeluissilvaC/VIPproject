@@ -13,18 +13,32 @@ import time
 import json
 from pylsl import StreamInlet, resolve_stream
 import sqlite3
+import random
 # import winsound
 
 class game(object):
 
-    def __init__ (self, n, width = 800, height = 600, fps = 30):
+    def __init__ (self, id_s = "unknown", width = 800, height = 600, fps = 30):
         """Initialize pygame, window, background, font,...
         """
         pygame.init()
         pygame.display.set_caption("VIP: BCI")
+        conn = sqlite3.connect('database.db')
+        c = conn.cursor()
+        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='s_"+id_s+"'")
+        lock = c.fetchall()
+        print lock
+        if lock != []:
+            c.execute("SELECT MAX(n_trial) FROM s_"+id_s)
+            n = c.fetchall()
+            self.n = n[0][0]+1
+            print n
+        else:
+            self.n = 0
+        conn.close()
         self.width = width
         self.height = height
-        self.n = n
+        self.id_s = str(id_s)
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
         self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
@@ -33,7 +47,7 @@ class game(object):
         self.fps = fps
         self.playtime = 0.0
         self.font = pygame.font.SysFont('mono', 20, bold=True)
-
+        self.f = [self.moveRightArm,self.moveLeftArm,self.moveObjectUp,self.moveObjectDown]
 
     def run(self):
         """The mainloop
@@ -50,10 +64,12 @@ class game(object):
                         print ("[!] Preparation stage started")
                         self.preparation()
                         print ("[!] Preparation stage Finished")
-                        self.n = str(int(self.n) + 1)
+                        self.n = self.n + 1
+                        self.f = [self.moveRightArm,self.moveLeftArm,self.moveObjectUp,self.moveObjectDown]
             milliseconds = self.clock.tick(self.fps)
             self.playtime += milliseconds / 1000.0
             self.draw_text("BCI")
+            self.draw_text("Prueba: "+str(self.n)+" de s_"+self.id_s,(100,255,100),dh = -self.width // 6)
             pygame.display.flip()
             self.screen.blit(self.background, (0, 0))
         pygame.quit()
@@ -67,58 +83,65 @@ class game(object):
         self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
     def  preparation(self):  
-        # Delays and constants
-        trela1 = 5
-        trela2 = 5
-        tcont1 = 5
-        tcont2 = 5
-        freq = 60 #Hz
-        t = 1000 #miliseconds
-        #   Instructions - Etapa de relajacion 1
-        self.draw_text("Etapa de preparación: Instrucciones")
-        self.draw_text("Inhale:7s Mantenga:7s Exhale:7s",(100,255,100),dh = -self.width // 10)
+        self.rest(1)
+        random.choice(self.f)(1)
+        self.rest(1)
+        random.choice(self.f)(1)
+        self.rest(1)
+        random.choice(self.f)(1)
+        self.rest(1)
+        random.choice(self.f)(1)
+
+
+    def moveRightArm(self,t):
+        self.draw_text("Imagine que mueve la mano derecha",(100,255,100))
         pygame.display.flip()
-        time.sleep(3)
         self.screen.blit(self.background, (0, 0))
-        self.draw_text("Hagalo hasta escuchar una alerta de sonido",(100,255,100))
-        self.draw_text("Cierre los ojos",(100,255,100),dh = -self.width // 6)
+        time.sleep(4)
+        d = self.getDataO(t)
+        self.saveDataDB(d, "mra")
+        self.f.remove(self.moveRightArm)
+
+    def moveLeftArm(self,t):
+        self.draw_text("Imagine que mueve la mano izquierda",(100,255,100))
         pygame.display.flip()
-        self.screen.blit(self.background, (0, 0))   
-        #   Se obtienen los datos
-        r0 = self.getDataO(trela1)
-        # winsound.Beep(freq,t)
-        #   Etapa de concentracion 
-        self.draw_text("Concentrese en el punto")
+        time.sleep(4)
+        self.screen.blit(self.background, (0, 0))
+        d = self.getDataO(t)
+        self.saveDataDB(d, "mla")
+        self.f.remove(self.moveLeftArm)
+
+    def moveObjectUp(self,t): 
+        self.draw_text("Imagine que mueve el objeto hacia arriba",(100,255,100))
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(4)
+        pygame.draw.rect(self.screen, (225,225,255), [self.width//2 - 50,self.height//2 - 50, 100, 100],0)
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        d = self.getDataO(t)
+        self.saveDataDB(d, "mou")
+        self.f.remove(self.moveObjectUp)
+
+    def moveObjectDown(self,t): 
+        self.draw_text("Imagine que mueve el objeto hacia abajo",(100,255,100))
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
         time.sleep(4)
         pygame.draw.circle(self.screen, (255,255,255), (400,300), 5, 0)
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-        #   Se obtienen los datos
-        c0 = self.getDataO(tcont1)
-        #   Etapa de relajacion 
-        self.draw_text("Relajese")
-        pygame.display.flip()
-        self.screen.blit(self.background, (0, 0))
-        time.sleep(1)
-        #   Se obtienen los datos
-        r1 = self.getDataO(trela2)
-        #   Etapa de concentracion 2
-        self.draw_text("Imagine que mueve el cuadrado")
+        d = self.getDataO(t)
+        self.saveDataDB(d, "mod")
+        self.f.remove(self.moveObjectDown)
+
+    def rest(self,t): 
+        self.draw_text("Descanse",(100,255,100))
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
         time.sleep(4)
-        pygame.draw.rect(self.screen, (255,255,255), [self.width//2 - 50,self.height//2 - 50, 100, 100],0)
-        pygame.display.flip()
-        self.screen.blit(self.background, (0, 0))
-        #   Se obtienen los datos
-        c1 = self.getDataO(tcont2)
-        #   Se guardan los datos
-        self.saveDataDB(r0, "r0")
-        self.saveDataDB(c0, "c0")
-        self.saveDataDB(c1, "c1")
-        self.saveDataDB(r1, "r1") 
+        d = self.getDataO(t)
+        self.saveDataDB(d, "r")
 
     def getDataO(self, tm):
         fs = 128.0    #Frecuencia de muestreo
@@ -147,8 +170,9 @@ class game(object):
         c = conn.cursor()
         # Create table
         
-        c.execute('''CREATE TABLE IF NOT EXISTS '''+"s"+self.n+'''
+        c.execute('''CREATE TABLE IF NOT EXISTS '''+"s_"+self.id_s+'''
                 (n_sample INTEGER PRIMARY KEY,
+                n_trial INTEGER NOT NULL,
                 test_type TEXT NOT NULL,
                 AF3 REAL NOT NULL,
                 AF4 REAL NOT NULL,
@@ -166,45 +190,106 @@ class game(object):
                 O2 REAL NOT NULL)''')
         sn_m = []
         for n_s in list_of_dic :
-            sn = [0]*15
-            sn[0] = test_type
+            sn = [0]*16
+            sn[0] = self.n
+            sn[1] = test_type
             for key, value in n_s.iteritems():
                 if key == "AF3":
-                    sn[1] = value[0]
-                elif key == "AF4":
                     sn[2] = value[0]
-                elif key == "F3":
+                elif key == "AF4":
                     sn[3] = value[0]
-                elif key == "F4":
+                elif key == "F3":
                     sn[4] = value[0]
-                elif key == "F7":
+                elif key == "F4":
                     sn[5] = value[0]
-                elif key == "F8":
+                elif key == "F7":
                     sn[6] = value[0]
-                elif key == "FC5":
+                elif key == "F8":
                     sn[7] = value[0]
-                elif key == "FC6":
+                elif key == "FC5":
                     sn[8] = value[0]
-                elif key == "T7":
+                elif key == "FC6":
                     sn[9] = value[0]
-                elif key == "T8":
+                elif key == "T7":
                     sn[10] = value[0]
-                elif key == "P7":
+                elif key == "T8":
                     sn[11] = value[0]
-                elif key == "P8":
+                elif key == "P7":
                     sn[12] = value[0]
-                elif key == "01":
+                elif key == "P8":
                     sn[13] = value[0]
-                elif key == "02":
+                elif key == "01":
                     sn[14] = value[0]
+                elif key == "02":
+                    sn[15] = value[0]
             sn_m.append(tuple(sn))
         #print sn_m
-        c.executemany('''INSERT INTO '''+"s"+self.n+''' VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn_m)
+        c.executemany('''INSERT INTO '''+"s_"+self.id_s+''' VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn_m)
         conn.commit()
         conn.close()
-        print "[!]Table: '"+"s"+self.n+"' added/updated"
+        print "[!]Table '"+"s_"+self.id_s+"' added/updated"
 
 if __name__ == '__main__':
-    n = 0
-    game(str(n), 800, 600).run()
+    id_s = raw_input("[!] Digite el identificador del sujeto: ")
+    game(id_s, 800, 600).run()
+
+
+
+
+
+
+
+
+# # Delays and constants
+#         trela1 = 5
+#         trela2 = 5
+#         tcont1 = 5
+#         tcont2 = 5
+#         freq = 60 #Hz
+#         t = 1000 #miliseconds
+#         #   Instructions - Etapa de relajacion 1
+#         self.draw_text("Etapa de preparación: Instrucciones")
+#         self.draw_text("Inhale:7s Mantenga:7s Exhale:7s",(100,255,100),dh = -self.width // 10)
+#         pygame.display.flip()
+#         time.sleep(3)
+#         self.screen.blit(self.background, (0, 0))
+#         self.draw_text("Hagalo hasta escuchar una alerta de sonido",(100,255,100))
+#         self.draw_text("Cierre los ojos",(100,255,100),dh = -self.width // 6)
+#         pygame.display.flip()
+#         self.screen.blit(self.background, (0, 0))   
+#         #   Se obtienen los datos
+#         r0 = self.getDataO(trela1)
+#         # winsound.Beep(freq,t)
+#         #   Etapa de concentracion 
+#         self.draw_text("Concentrese en el punto")
+#         pygame.display.flip()
+#         self.screen.blit(self.background, (0, 0))
+#         time.sleep(4)
+#         pygame.draw.circle(self.screen, (255,255,255), (400,300), 5, 0)
+#         pygame.display.flip()
+#         self.screen.blit(self.background, (0, 0))
+#         #   Se obtienen los datos
+#         c0 = self.getDataO(tcont1)
+#         #   Etapa de relajacion 
+#         self.draw_text("Relajese")
+#         pygame.display.flip()
+#         self.screen.blit(self.background, (0, 0))
+#         time.sleep(1)
+#         #   Se obtienen los datos
+#         r1 = self.getDataO(trela2)
+#         #   Etapa de concentracion 2
+#         self.draw_text("Imagine que mueve el cuadrado")
+#         pygame.display.flip()
+#         self.screen.blit(self.background, (0, 0))
+#         time.sleep(4)
+#         pygame.draw.rect(self.screen, (255,255,255), [self.width//2 - 50,self.height//2 - 50, 100, 100],0)
+#         pygame.display.flip()
+#         self.screen.blit(self.background, (0, 0))
+#         #   Se obtienen los datos
+#         c1 = self.getDataO(tcont2)
+#         #   Se guardan los datos
+#         self.saveDataDB(r0, "r0")
+#         self.saveDataDB(c0, "c0")
+#         self.saveDataDB(c1, "c1")
+#         self.saveDataDB(r1, "r1")
 
