@@ -22,6 +22,7 @@ import numpy as np
 import json
 import sqlite3
 import copy
+import time
 
 
 def getDataFromDB(id_s, test_type):
@@ -34,18 +35,17 @@ def getDataFromDB(id_s, test_type):
             mla - Move left arm
             mou - Move object up
             mod - Move object down
-            all - All the tests
     Output
-        AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8: List of senor values with the structure:
-        sensor = [[data of trial 1],[data of trial 2],...,[data of trial N]]
+        [AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8]: List of list of sensor values with the structure:
+        sensor = [[data of trial 0],[data of trial 1],...,[data of trial N]]
+        
+    For examle if you call data = getDataFromDB(id_s, test_type)
+    and you try to get data[i][j], then you will get the data for the i electrode
+    and the j trial.
     """
     conn = sqlite3.connect('database.db') #connection object
     c = conn.cursor()
-
-    if test_type == "all" :
-        c.execute('''select * from '''+"s_"+id_s)
-    else:
-        c.execute('''select n_trial,AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8 from '''+"s_"+id_s+" where (test_type = '"+test_type+"')")
+    c.execute('''select n_trial,AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8 from '''+"s_"+id_s+" where (test_type = '"+test_type+"')")
     data = np.array(c.fetchall())
     conn.close()
 
@@ -79,7 +79,8 @@ def getDataFromDB(id_s, test_type):
         P7[i].append(row[11])
         P8[i].append(row[12])
 
-    return AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8
+    return [AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8]
+
 
 def butter_bandpass_filter(data,lowcut = 0, highcut = 13,fs = 128, order = 6): # Filter
     nyq = 0.5*fs;
@@ -111,13 +112,12 @@ while True:
     else:
         break
 
-AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8 = getDataFromDB(id_s, test_type)
-
-print len(AF3[1])
+Data = getDataFromDB(id_s, test_type)
+print Data[0][0]
 
 fs = 128.0
 ts = 1/fs
-time = np.arange(0,len(AF3[0]) * ts,ts)
+time = np.arange(0,len(Data[0][0]) * ts,ts)
 """
 for key in lst:
 
