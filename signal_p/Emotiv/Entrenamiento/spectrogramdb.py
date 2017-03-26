@@ -22,8 +22,6 @@ import numpy as np
 import json
 import sqlite3
 import copy
-import time
-
 
 def getDataFromDB(id_s, test_type):
     """Get all the trials of some subject(id_s) of some test(type_test)
@@ -105,19 +103,18 @@ while True:
   mla - mover la mano izquierda
   mou - mover objeto hacia arriba
   mod - mover objeto hacia abajo
-  all - Todos los tipos
   => ''')
     if not(test_type in test_types):
         print("[X] El identificador no se encuentra, por favor ingrese uno válido")
     else:
         break
 
-Data = getDataFromDB(id_s, test_type)
-print Data[0][0]
+data = getDataFromDB(id_s, test_type)
 
 fs = 128.0
 ts = 1/fs
-time = np.arange(0,len(Data[0][0]) * ts,ts)
+time = np.arange(0,len(data[0][0]) * ts,ts)
+
 """
 for key in lst:
 
