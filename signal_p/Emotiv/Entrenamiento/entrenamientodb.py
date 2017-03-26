@@ -41,7 +41,7 @@ class game(object):
         self.id_s = str(id_s)
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
-        self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.clock = pygame.time.Clock()
         self.fps = fps
@@ -83,14 +83,14 @@ class game(object):
         self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
     def  preparation(self):  
-        self.rest(1)
-        random.choice(self.f)(1)
-        self.rest(1)
-        random.choice(self.f)(1)
-        self.rest(1)
-        random.choice(self.f)(1)
-        self.rest(1)
-        random.choice(self.f)(1)
+        self.rest(4)
+        random.choice(self.f)(7)
+        self.rest(4)
+        random.choice(self.f)(7)
+        self.rest(4)
+        random.choice(self.f)(7)
+        self.rest(4)
+        random.choice(self.f)(7)
 
 
     def moveRightArm(self,t):
@@ -233,63 +233,4 @@ if __name__ == '__main__':
     id_s = raw_input("[!] Digite el identificador del sujeto: ")
     game(id_s, 800, 600).run()
 
-
-
-
-
-
-
-
-# # Delays and constants
-#         trela1 = 5
-#         trela2 = 5
-#         tcont1 = 5
-#         tcont2 = 5
-#         freq = 60 #Hz
-#         t = 1000 #miliseconds
-#         #   Instructions - Etapa de relajacion 1
-#         self.draw_text("Etapa de preparación: Instrucciones")
-#         self.draw_text("Inhale:7s Mantenga:7s Exhale:7s",(100,255,100),dh = -self.width // 10)
-#         pygame.display.flip()
-#         time.sleep(3)
-#         self.screen.blit(self.background, (0, 0))
-#         self.draw_text("Hagalo hasta escuchar una alerta de sonido",(100,255,100))
-#         self.draw_text("Cierre los ojos",(100,255,100),dh = -self.width // 6)
-#         pygame.display.flip()
-#         self.screen.blit(self.background, (0, 0))   
-#         #   Se obtienen los datos
-#         r0 = self.getDataO(trela1)
-#         # winsound.Beep(freq,t)
-#         #   Etapa de concentracion 
-#         self.draw_text("Concentrese en el punto")
-#         pygame.display.flip()
-#         self.screen.blit(self.background, (0, 0))
-#         time.sleep(4)
-#         pygame.draw.circle(self.screen, (255,255,255), (400,300), 5, 0)
-#         pygame.display.flip()
-#         self.screen.blit(self.background, (0, 0))
-#         #   Se obtienen los datos
-#         c0 = self.getDataO(tcont1)
-#         #   Etapa de relajacion 
-#         self.draw_text("Relajese")
-#         pygame.display.flip()
-#         self.screen.blit(self.background, (0, 0))
-#         time.sleep(1)
-#         #   Se obtienen los datos
-#         r1 = self.getDataO(trela2)
-#         #   Etapa de concentracion 2
-#         self.draw_text("Imagine que mueve el cuadrado")
-#         pygame.display.flip()
-#         self.screen.blit(self.background, (0, 0))
-#         time.sleep(4)
-#         pygame.draw.rect(self.screen, (255,255,255), [self.width//2 - 50,self.height//2 - 50, 100, 100],0)
-#         pygame.display.flip()
-#         self.screen.blit(self.background, (0, 0))
-#         #   Se obtienen los datos
-#         c1 = self.getDataO(tcont2)
-#         #   Se guardan los datos
-#         self.saveDataDB(r0, "r0")
-#         self.saveDataDB(c0, "c0")
-#         self.saveDataDB(c1, "c1")
-#         self.saveDataDB(r1, "r1")
 
