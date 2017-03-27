@@ -34,8 +34,8 @@ def getDataFromDB(id_s, test_type):
             mou - Move object up
             mod - Move object down
     Output
-        [AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8]: List of list of sensor values with the structure:
-        sensor = [[data of trial 0],[data of trial 1],...,[data of trial N]]
+        [AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8]: List of list of electrode values with the structure:
+        electrode = [[data of trial 0],[data of trial 1],...,[data of trial N]]
         
     For examle if you call data = getDataFromDB(id_s, test_type)
     and you try to get data[i][j], then you will get the data for the i electrode
@@ -80,7 +80,7 @@ def getDataFromDB(id_s, test_type):
     return [AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8]
 
 
-def butter_bandpass_filter(data,lowcut = 0, highcut = 13,fs = 128, order = 6): # Filter
+def butter_filter(data,lowcut = 0, highcut = 13,fs = 128, order = 6): # Filter
     nyq = 0.5*fs;
     low = lowcut/nyq
     high = highcut/nyq
@@ -90,8 +90,21 @@ def butter_bandpass_filter(data,lowcut = 0, highcut = 13,fs = 128, order = 6): #
     #max_value = np.amax(pxx)
     return y
 
-def diezmado(data, n): # Función para diezmar fs/5
-    pass
+def removeDC(data):
+    for electrode in range(0,len(data)):
+        for trial in range(0,len(data[electrode])):
+
+            v_trial = (data[electrode][trial] - np.mean(data[electrode][trial]))*(0.51*10**-6) # Señal sin media y escalada a voltaje
+            data[electrode][trial] = butter_filter(v_trial) # Señal filtrada
+    return data
+
+def downSampling(data, scale):
+    sub_signals = np.zeros((len(data), len(data[0]),len(data[0][0])/2))
+
+    for electrode in range(0,len(data)):
+        for trial in range(0,len(data[electrode])):
+            sub_signals[electrode][trial] = data[electrode][trial][::scale]
+    return sub_signals
 
 
 test_types = ["r","mra","mla","mou","mod"]
@@ -110,28 +123,32 @@ while True:
         break
 
 data = getDataFromDB(id_s, test_type)
+data = removeDC(data)
+sub_signals = downSampling(data,2)
 
-fs = 128.0
-ts = 1/fs
+Fs = 128.0/2 # esto es porque fue submuestreado a 2
+ts = 1/Fs
 time = np.arange(0,len(data[0][0]) * ts,ts)
+S, f, t, _ = plt.specgram(sub_signals[0][0], NFFT=int(Fs), Fs=Fs, noverlap=int(Fs/2))
+print len(S)
+print "longitud de t: "+str(len(t))
+print t
+print "longitud de f: "+str(len(f))
+print f
+print len()
+Sxx = np.zeros((len(sub_signals), len(sub_signals[0]),len(S[1])))
 
-"""
-for key in lst:
 
-  data[key] = (data[key] - np.mean(data[key]))*(0.51*10**-6) # Señal sin media y escalada a voltaje
-  data[key] = butter_bandpass_filter(data[key]) # Señal filtrada
-  #Data vs time 
-  #plt.subplot(211)
-  plt.plot(time,data[key])
-  plt.ylabel('Sensor value [uV]')
-  plt.xlabel('Time [sec]')
-  plt.title(key)
-  plt.grid()
-  #Spectrogram 
-  #plt.subplot(212)
-  #f, t, Sxx, im = plt.specgram(data[key], NFFT=128, Fs=128,noverlap=100)
-  plt.show()
-  #savefig(key + '.png', dpi = 300)
+for electrode in range(0,len(sub_signals)):
+    for trial in range(0,len(sub_signals[electrode])):
+        x = sub_signals[electrode][trial]
+        #print(Sxx)
+        S, _, _, _ = plt.specgram(sub_signals[0][0], NFFT=int(Fs), Fs=Fs, noverlap=int(Fs/2))
+        Sxx[electrode][trial]= S[1]
 
-"""
+
+#print len(Sxx[0][0])
+#print Sxx[0][0]
+
 print "done"
+
