@@ -129,18 +129,18 @@ sub_signals = downSampling(data,2)
 Fs = 128.0/2 # esto es porque fue submuestreado a 2
 ts = 1/Fs
 time = np.arange(0,len(data[0][0]) * ts,ts)
-S, f, t, _ = plt.specgram(sub_signals[0][0], NFFT=64, Fs=64, noverlap=32)
-
-Sxx = np.zeros((len(sub_signals), len(sub_signals[0]),len(f)))
-
+f, t, S = signal.spectrogram(sub_signals[0][0], fs=64, nperseg=64,nfft=64,noverlap=32)
+ff = sub_signals.shape # Tamaño del array
+Sxx = np.zeros((ff[0]*ff[1],len(f)+3))
+i=0
 for electrode in range(0,len(sub_signals)):
     for trial in range(0,len(sub_signals[electrode])):
         x = sub_signals[electrode][trial]
-        S, _, _, _ = plt.specgram(x, NFFT=int(Fs), Fs=Fs, noverlap=int(Fs/2))
-        Sxx[electrode][trial]= np.mean(S,axis=1)
-
+        _, _, S = signal.spectrogram(x, fs=64, nperseg=64,nfft=64,noverlap=32)
+        Sxx[i,0:2] =[electrode,trial]
+        Sxx[i,3::] = np.mean(S,axis=1)
+        i+=1
 #print len(Sxx[0][0])
 #print Sxx[0][0]
-
 print "done"
 
