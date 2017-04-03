@@ -1,0 +1,2 @@
+Public DNS:
+ec2-35-165-45-222.us-west-2.compute.amazonaws.com
