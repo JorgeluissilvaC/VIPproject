@@ -1,16 +1,11 @@
-import sqlite3
 import mysql.connector
 
-conn = sqlite3.connect('database.db') #connection object
-c = conn.cursor()
-t_name = "s_julian"
-c.execute('''select * from '''+t_name)
-data = c.fetchall()
-conn.close()
+data = [[0, "r", 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,666,666,666],
+        [1, "mra", 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,666,666]]
 
 
 TABLES = {}
-
+t_name = "unknown"
 TABLES[t_name] = (
     "CREATE TABLE IF NOT EXISTS `"+t_name+"` ("
     "  `n_sample` int(11) NOT NULL AUTO_INCREMENT,"
@@ -29,36 +24,26 @@ TABLES[t_name] = (
     "   `P7` REAL NOT NULL,"
     "   `P8` REAL NOT NULL,"
     "   `O1` REAL NOT NULL,"
-    "   `O2` REAL NOT NULL)"
+    "   `O2` REAL NOT NULL,"
     "  PRIMARY KEY (`n_sample`)"
     ") ENGINE=InnoDB")
-add_data = ("INSERT INTO "+t_name+
-               "(n_sample,n_trial,test_type,AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8) "
-               "VALUES (%s, %s, %s, %s, %s,%s, %s, %s, %s, %s,%s, %s, %s, %s, %s)")
 
-try:
-  cnx = mysql.connector.connect(user='root', password='uniatlantico',
+add_data = ("INSERT INTO "+t_name+
+               "(n_trial,test_type,AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8,O1,O2) "
+               "VALUES(%s, %s, %s, %s,%s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s)")
+
+cnx = mysql.connector.connect(user='root', password='uniatlantico',
                                 host='vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
                                 database='vipdb')
-  cursor = cnx.cursor()
-  for name, ddl in TABLES.iteritems():
-    try:
-        print("Creating table "+str(name))
-        cursor.executemany(add_data,data)
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-            print("already exists.")
-        else:
-            print(err.msg)
-    else:
-        print("OK")
+cursor = cnx.cursor()
 
-except mysql.connector.Error as err:
-  if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-    print("Something is wrong with your user name or password")
-  elif err.errno == errorcode.ER_BAD_DB_ERROR:
-    print("Database does not exist")
-  else:
-    print(err)
-else:
-  cnx.close()
+### CREATE TABLE ###
+#for name, ddl in TABLES.iteritems():
+#    cursor.execute()
+
+### INSERT DATA ###
+cursor.executemany(add_data,data)
+
+cnx.commit()
+cursor.close()
+cnx.close()
