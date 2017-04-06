@@ -4,15 +4,10 @@
 """
 Script entrenamiento para los dos dispositivos Emotiv Epoc
 """
-import pygame 
+import mysql.connector
+import pygame
 from emokit.emotiv import Emotiv
-from scipy import signal
-import matplotlib.pyplot as plt
-import numpy as np
 import time 
-import json
-from pylsl import StreamInlet, resolve_stream
-import sqlite3
 import random
 # import winsound
 
@@ -23,25 +18,31 @@ class game(object):
         """
         pygame.init()
         pygame.display.set_caption("VIP: BCI")
-        conn = sqlite3.connect('database.db')
-        c = conn.cursor()
-        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='s_"+id_s+"'")
-        lock = c.fetchall()
+        cnx = mysql.connector.connect(user =     'root', 
+                                      password = 'uniatlantico',
+                                      host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
+                                      database = 'vipdb')
+        cursor = cnx.cursor()
+        
+        cursor.execute("show tables like 's_"+id_s+"'")
+        lock = cursor.fetchall()
         print lock
         if lock != []:
-            c.execute("SELECT MAX(n_trial) FROM s_"+id_s)
-            n = c.fetchall()
+            cursor.execute("SELECT MAX(n_trial) FROM s_"+id_s)
+            n = cursor.fetchall()
             self.n = n[0][0]+1
             print n
         else:
             self.n = 0
-        conn.close()
+            
+        cursor.close()
+        cnx.close()
         self.width = width
         self.height = height
         self.id_s = str(id_s)
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
-        self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.clock = pygame.time.Clock()
         self.fps = fps
@@ -166,28 +167,40 @@ class game(object):
         return dt
 
     def saveDataDB(self, list_of_dic, test_type):
-        conn = sqlite3.connect('database.db') #connection object
-        c = conn.cursor()
-        # Create table
+        add_table = (
+            "CREATE TABLE IF NOT EXISTS `s_"+self.id_s+"` ("
+            "  `n_sample` int(11) NOT NULL AUTO_INCREMENT,"
+            "  `n_trial` int(11) NOT NULL,"
+            "  `test_type` varchar(14) NOT NULL,"
+            "   `AF3` REAL NOT NULL,"
+            "   `AF4` REAL NOT NULL,"
+            "   `F3` REAL NOT NULL,"
+            "   `F4` REAL NOT NULL,"
+            "   `F7` REAL NOT NULL,"
+            "   `F8` REAL NOT NULL,"
+            "   `FC5` REAL NOT NULL,"
+            "   `FC6` REAL NOT NULL,"
+            "   `T7` REAL NOT NULL,"
+            "   `T8` REAL NOT NULL,"
+            "   `P7` REAL NOT NULL,"
+            "   `P8` REAL NOT NULL,"
+            "   `O1` REAL NOT NULL,"
+            "   `O2` REAL NOT NULL,"
+            "  PRIMARY KEY (`n_sample`)"
+            ") ENGINE=InnoDB")
         
-        c.execute('''CREATE TABLE IF NOT EXISTS '''+"s_"+self.id_s+'''
-                (n_sample INTEGER PRIMARY KEY,
-                n_trial INTEGER NOT NULL,
-                test_type TEXT NOT NULL,
-                AF3 REAL NOT NULL,
-                AF4 REAL NOT NULL,
-                F3 REAL NOT NULL,
-                F4 REAL NOT NULL,
-                F7 REAL NOT NULL,
-                F8 REAL NOT NULL,
-                FC5 REAL NOT NULL,
-                FC6 REAL NOT NULL,
-                T7 REAL NOT NULL,
-                T8 REAL NOT NULL,
-                P7 REAL NOT NULL,
-                P8 REAL NOT NULL,
-                O1 REAL NOT NULL,
-                O2 REAL NOT NULL)''')
+        add_data = ("INSERT INTO s_"+self.id_s+
+                       "(n_trial,test_type,AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8,O1,O2) "
+                       "VALUES(%s, %s, %s, %s,%s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s)")
+        
+        cnx = mysql.connector.connect(user =     'root', 
+                                      password = 'uniatlantico',
+                                      host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
+                                      database = 'vipdb')
+        cursor = cnx.cursor()
+        
+        cursor.execute(add_table)
+        
         sn_m = []
         for n_s in list_of_dic :
             sn = [0]*16
@@ -224,9 +237,10 @@ class game(object):
                     sn[15] = value[0]
             sn_m.append(tuple(sn))
         #print sn_m
-        c.executemany('''INSERT INTO '''+"s_"+self.id_s+''' VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn_m)
-        conn.commit()
-        conn.close()
+        cursor.executemany(add_data,sn_m)
+        cnx.commit()
+        cursor.close()
+        cnx.close()
         print "[!]Table '"+"s_"+self.id_s+"' added/updated"
 
 if __name__ == '__main__':

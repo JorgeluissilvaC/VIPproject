@@ -39,11 +39,15 @@ cursor = cnx.cursor()
 
 ### CREATE TABLE ###
 #for name, ddl in TABLES.iteritems():
-#    cursor.execute()
+#    cursor.execute(ddl)
 
 ### INSERT DATA ###
 cursor.executemany(add_data,data)
 
+cursor.execute("show tables like 's_jun'")
+lock = cursor.fetchall()
+
+print lock
 cnx.commit()
 cursor.close()
 cnx.close()
