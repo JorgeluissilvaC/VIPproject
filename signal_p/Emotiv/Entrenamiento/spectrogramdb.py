@@ -16,12 +16,9 @@ Tipos de prueba:
 
 """
 from scipy import signal
-from pylab import *
-import matplotlib.pyplot as plt
 import numpy as np
-import json
-import sqlite3
 import copy
+import mysql.connector
 
 def getDataFromDB(id_s, test_type):
     """Get all the trials of some subject(id_s) of some test(type_test)
@@ -41,11 +38,15 @@ def getDataFromDB(id_s, test_type):
     and you try to get data[i][j], then you will get the data for the i electrode
     and the j trial.
     """
-    conn = sqlite3.connect('database.db') #connection object
-    c = conn.cursor()
-    c.execute('''select n_trial,AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8 from '''+"s_"+id_s+" where (test_type = '"+test_type+"')")
-    data = np.array(c.fetchall())
-    conn.close()
+    cnx = mysql.connector.connect(user =     'root', 
+                                  password = 'uniatlantico',
+                                  host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
+                                  database = 'vipdb')
+    cursor = cnx.cursor()
+    cursor.execute('''select n_trial,AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8 from '''+"s_"+id_s+" where (test_type = '"+test_type+"')")
+    data = np.array(cursor.fetchall())
+    cursor.close()
+    cnx.close()
 
     AF3 = []
     for i in range(0,int(data[-1][0])+1):
@@ -80,40 +81,51 @@ def getDataFromDB(id_s, test_type):
     return [AF3,AF4,F3,F4,F7,F8,FC5,FC6,T7,T8,P7,P8]
 
 def saveDataDB(sn_m):
-    conn = sqlite3.connect('database.db') #connection object
-    c = conn.cursor()
-    # Create table
+    #conn = sqlite3.connect('database.db') #connection object
+    #c = conn.cursor()
+    cnx = mysql.connector.connect(user =     'root', 
+                                  password = 'uniatlantico',
+                                  host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
+                                  database = 'vipdb')
+    cursor = cnx.cursor()
+    # Create table   
+    add_table = (
+            "CREATE TABLE IF NOT EXISTS `c_"+id_s+"` ("
+            "  `n_sample` int(11) NOT NULL AUTO_INCREMENT,"
+            "  `electrode` int(11) NOT NULL,"
+            "  `test_type` int(11) NOT NULL,"
+            "  `n_trial` int(11) NOT NULL,"
+            "   `F0` REAL NOT NULL,"
+            "   `F08` REAL NOT NULL,"
+            "   `F16` REAL NOT NULL,"
+            "   `F24` REAL NOT NULL,"
+            "   `F32` REAL NOT NULL,"
+            "   `F4` REAL NOT NULL,"
+            "   `F48` REAL NOT NULL,"
+            "   `F56` REAL NOT NULL,"
+            "   `F64` REAL NOT NULL,"
+            "   `F72` REAL NOT NULL,"
+            "   `F8` REAL NOT NULL,"
+            "   `F88` REAL NOT NULL,"
+            "   `F96` REAL NOT NULL,"
+            "   `F104` REAL NOT NULL,"
+            "   `F112` REAL NOT NULL,"
+            "   `F12` REAL NOT NULL,"
+            "   `F128` REAL NOT NULL,"
+            "  PRIMARY KEY (`n_sample`)"
+            ") ENGINE=InnoDB")
+    cursor.execute(add_table)
     
-    c.execute('''CREATE TABLE IF NOT EXISTS '''+"Datos_"+id_s+'''
-            (n_sample INTEGER PRIMARY KEY,
-            Electrodo INTEGER NOT NULL,
-            test_type INTEGER NOT NULL,
-            n_trial INTEGER NOT NULL,
-            F0 REAL NOT NULL,
-            F08 REAL NOT NULL,
-            F16 REAL NOT NULL,
-            F24 REAL NOT NULL,
-            F32 REAL NOT NULL,
-            F4 REAL NOT NULL,
-            F48 REAL NOT NULL,
-            F56 REAL NOT NULL,
-            F64 REAL NOT NULL,
-            F72 REAL NOT NULL,
-            F8 REAL NOT NULL,
-            F88 REAL NOT NULL,
-            F96 REAL NOT NULL,
-            F104 REAL NOT NULL,
-            F112 REAL NOT NULL,
-            F12 REAL NOT NULL,
-            F128 REAL NOT NULL)''')
+    add_data = ("INSERT INTO c_"+id_s+
+                "(electrode,test_type,n_trial,F0,F08,F16,F24,F32,F4,F48,F56,F64,F72,F8,F88,F96,F104,F112,F12,F128)"
+                "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
     #print sn_m
-    c.executemany('''INSERT INTO '''+"Datos_"+id_s+'''
-    VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', sn_m)
-    conn.commit()
-    conn.close()
+    cursor.executemany(add_data,sn_m)
+    cnx.commit()
+    cursor.close()
+    cnx.close()
     print "[!]Table '"+"Datos""' added/updated"
-
-
+    
 def butter_filter(data,lowcut = 3, highcut = 13,fs = 128, order = 6): # Filter
     nyq = 0.5*fs
     low = lowcut/nyq
