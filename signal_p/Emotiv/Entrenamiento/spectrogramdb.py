@@ -157,11 +157,11 @@ test_types = ["r","mra","mla","mou","mod"]
 id_s = raw_input("[!] Digite el identificador del sujeto: ")
 while True:
     test_type = raw_input('''[!] Digite el tipo de experimento: 
-  r - relajación  = 4
-  mra - mover la mano derecha = 0
-  mla - mover la mano izquierda = 1 
-  mou - mover objeto hacia arriba = 2 
-  mod - mover objeto hacia abajo = 3
+  mra - mover la mano derecha (se guardara con el id = 0 en la BD)
+  mla - mover la mano izquierda (se guardara con el id = 1 en la BD)
+  mou - mover objeto hacia arriba (se guardara con el id = 2 en la BD)
+  mod - mover objeto hacia abajo (se guardara con el id = 3 en la BD)
+  r   - relajación  (se guardara con el id = 4 en la BD)
   => ''')
     if not(test_type in test_types):
         print("[X] El identificador no se encuentra, por favor ingrese uno válido")
