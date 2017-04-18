@@ -124,11 +124,10 @@ def saveDataDB(sn_m):
     cnx.commit()
     cursor.close()
     cnx.close()
-    print "[!]Table '"+"Datos""' added/updated"
+    print "[!]Table 'c_"+id_s+"' added/updated"
     
 def butter_filter(data,lowcut = 3, highcut = 13,fs = 128, order = 6): # Filter
     nyq = 0.5*fs
-    low = lowcut/nyq
     high = highcut/nyq
     b, a = signal.butter(order, high, btype ='low')
     y = signal.lfilter(b, a, data)
@@ -183,7 +182,7 @@ elif (test_type == "mod"):
     test_type=3
 elif (test_type == "r"):
     test_type=4
-    
+
 data = removeDC(data)
 sub_signals = downSampling(data,5)
 
@@ -201,9 +200,5 @@ for electrode in range(0,len(sub_signals)):
         Sxx[i,0:3] =[electrode,test_type,trial]
         Sxx[i,3::] = np.mean(S,axis=1)
         i+=1
-#print len(Sxx[0][0])
-#print Sxx[0][0]
 
-print "done"
-
-saveDataDB(Sxx)
+saveDataDB(Sxx.tolist())
