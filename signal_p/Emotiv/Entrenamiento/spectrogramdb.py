@@ -201,4 +201,4 @@ for electrode in range(0,len(sub_signals)):
         Sxx[i,3::] = np.mean(S,axis=1)
         i+=1
 
-saveDataDB(Sxx.tolist())
+#saveDataDB(Sxx.tolist())
