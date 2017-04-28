@@ -7,7 +7,7 @@ import json
 stream_name = 'NIC'
 streams = resolve_stream('type', 'EEG')
 fs = 500 # Frecuencia de muestreo
-time = 1 # tiempo de muestreo
+time = 10 # tiempo de muestreo
 N=fs*time #Numero de muestras 
 c=0;
 muestras = []
@@ -36,6 +36,4 @@ for electrodos in range(0,len(sample)):
     for muestra in muestras:
         dic[electrodos+1].append(muestra[electrodos])
 
-with open('test1.json', 'w') as fp:
-    json.dump(dic, fp)
 print "ready"

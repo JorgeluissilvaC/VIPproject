@@ -30,6 +30,7 @@ class game(object):
         if lock != []:
             cursor.execute("SELECT MAX(n_trial) FROM s_"+id_s)
             n = cursor.fetchall()
+            print n
             self.n = n[0][0]+1
             print n
         else:
@@ -42,13 +43,14 @@ class game(object):
         self.id_s = str(id_s)
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
-        self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
+        #DOUBLEBUF
+        self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.clock = pygame.time.Clock()
         self.fps = fps
         self.playtime = 0.0
         self.font = pygame.font.SysFont('mono', 20, bold=True)
-        self.f = [self.moveRightArm,self.moveLeftArm,self.moveObjectUp,self.moveObjectDown]
+        self.f = [self.moveRightHand,self.moveLeftHand,self.moveObjectUp,self.moveObjectDown]
 
     def run(self):
         """The mainloop
@@ -66,7 +68,7 @@ class game(object):
                         self.preparation()
                         print ("[!] Preparation stage Finished")
                         self.n = self.n + 1
-                        self.f = [self.moveRightArm,self.moveLeftArm,self.moveObjectUp,self.moveObjectDown]
+                        self.f = [self.moveRightHand,self.moveLeftHand,self.moveObjectUp,self.moveObjectDown]
             milliseconds = self.clock.tick(self.fps)
             self.playtime += milliseconds / 1000.0
             self.draw_text("BCI")
@@ -83,34 +85,45 @@ class game(object):
         # // makes integer division in python3
         self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
-    def  preparation(self):  
-        self.rest(4)
-        random.choice(self.f)(7)
-        self.rest(4)
-        random.choice(self.f)(7)
-        self.rest(4)
-        random.choice(self.f)(7)
-        self.rest(4)
-        random.choice(self.f)(7)
+    def  preparation(self): 
+        d1=self.rest(4)
+        j1,cl1=random.choice(self.f)(7)
+        d2=self.rest(4)
+        j2,cl2=random.choice(self.f)(7)
+        d3=self.rest(4)
+        j3,cl3=random.choice(self.f)(7)
+        d4=self.rest(4)
+        j4,cl4=random.choice(self.f)(7)
+        self.Loading()
+        self.saveDataDB(d1, "r")
+        self.saveDataDB(d2, "r")
+        self.saveDataDB(d3, "r")
+        self.saveDataDB(d4, "r")
+        self.saveDataDB(j1, cl1)
+        self.saveDataDB(j2, cl2)
+        self.saveDataDB(j3, cl3)
+        self.saveDataDB(j4, cl4)
 
 
-    def moveRightArm(self,t):
+    def moveRightHand(self,t):
         self.draw_text("Imagine que mueve la mano derecha",(100,255,100))
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-        time.sleep(4)
+        time.sleep(0.5)
         d = self.getDataO(t)
-        self.saveDataDB(d, "mrh")
-        self.f.remove(self.moveRightArm)
+        self.f.remove(self.moveRightHand)
+        clas="mrh"
+        return d,clas
 
-    def moveLeftArm(self,t):
+    def moveLeftHand(self,t):
         self.draw_text("Imagine que mueve la mano izquierda",(100,255,100))
         pygame.display.flip()
-        time.sleep(4)
+        time.sleep(0.5)
         self.screen.blit(self.background, (0, 0))
         d = self.getDataO(t)
-        self.saveDataDB(d, "mlh")
-        self.f.remove(self.moveLeftArm)
+        self.f.remove(self.moveLeftHand)
+        clas="mlh"
+        return d,clas
 
     def moveObjectUp(self,t): 
         self.draw_text("Imagine que mueve el objeto hacia arriba",(100,255,100))
@@ -121,8 +134,9 @@ class game(object):
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
         d = self.getDataO(t)
-        self.saveDataDB(d, "mou")
         self.f.remove(self.moveObjectUp)
+        clas="mou"
+        return d,clas
 
     def moveObjectDown(self,t): 
         self.draw_text("Imagine que mueve el objeto hacia abajo",(100,255,100))
@@ -133,16 +147,22 @@ class game(object):
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
         d = self.getDataO(t)
-        self.saveDataDB(d, "mod")
         self.f.remove(self.moveObjectDown)
+        clas="mod"
+        return d,clas
 
     def rest(self,t): 
         self.draw_text("Descanse",(100,255,100))
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-        time.sleep(4)
+        time.sleep(0.5)
         d = self.getDataO(t)
-        self.saveDataDB(d, "r")
+        return d
+    def Loading(self):
+        self.draw_text("Cargando...",(100,255,100))
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(0.5)
 
     def getDataO(self, tm):
         stream_name = 'NIC'
@@ -184,19 +204,19 @@ class game(object):
             "  `n_sample` int(11) NOT NULL AUTO_INCREMENT,"
             "  `n_trial` int(11) NOT NULL,"
             "  `test_type` varchar(14) NOT NULL,"
-            "   `1` REAL NOT NULL,"
-            "   `2` REAL NOT NULL,"
-            "   `3` REAL NOT NULL,"
-            "   `4` REAL NOT NULL,"
-            "   `5` REAL NOT NULL,"
-            "   `6` REAL NOT NULL,"
-            "   `7` REAL NOT NULL,"
-            "   `8` REAL NOT NULL,"
+            "   `e1` REAL NOT NULL,"
+            "   `e2` REAL NOT NULL,"
+            "   `e3` REAL NOT NULL,"
+            "   `e4` REAL NOT NULL,"
+            "   `e5` REAL NOT NULL,"
+            "   `e6` REAL NOT NULL,"
+            "   `e7` REAL NOT NULL,"
+            "   `e8` REAL NOT NULL,"
             "  PRIMARY KEY (`n_sample`)"
             ") ENGINE=InnoDB")
         
         add_data = ("INSERT INTO s_"+self.id_s+
-                       "(n_trial,test_type,1,2,3,4,5,6,7,8) "
+                       "(n_trial,test_type,e1,e2,e3,e4,e5,e6,e7,e8) "
                        "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
         
         cnx = mysql.connector.connect(user =     'root', 
@@ -206,11 +226,10 @@ class game(object):
         cursor = cnx.cursor()
         
         cursor.execute(add_table)
-        
-        sn = [[self.n,test_type]+[0]*10]*len(dic_of_list[0])
+        sn = [[self.n,test_type]+[0]*8]*len(dic_of_list[1])
         for key, value in dic_of_list.iteritems():
             for i in range(len(dic_of_list[key])):
-                sn[i][key-1] = dic_of_list[key][i]
+                sn[i][key+1] = dic_of_list[key][i]
         #print sn_m
         cursor.executemany(add_data,sn)
         cnx.commit()
