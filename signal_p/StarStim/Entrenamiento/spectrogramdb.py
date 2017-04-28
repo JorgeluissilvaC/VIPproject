@@ -38,16 +38,23 @@ def getDataFromDB(id_s, test_type):
     and you try to get data[i][j], then you will get the data for the i electrode
     and the j trial.
     """
+    print("Hola mama")
     cnx = mysql.connector.connect(user =     'root', 
                                   password = 'uniatlantico',
                                   host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
                                   database = 'vipdb')
+    print("Hola mama2")
     cursor = cnx.cursor()
-    cursor.execute('''select n_trial,e1,e2,e3,e4,e5,e6,e7,e8 from '''+"s_"+id_s+" where (test_type = '"+test_type+"')")
+    cursor.execute("select n_trial,e1,e2,e3,e4,e5,e6,e7,e8 from "+"s_"+id_s+" where(test_type = '"+test_type+"')")
+    #cursor.execute("SELECT n_trial,e1,e2,e3,e4,e5,e6,e7,e8 FROM vipdb.s_dayanST WHERE (test_type = 'mrh')")
     data = np.array(cursor.fetchall())
+       # NB : you won't get an IntegrityError when reading    
+    #for row in cursor:
+    #    print(row)
+
+    print("Hola mama3")
     cursor.close()
     cnx.close()
-
     e1 = []
     for i in range(0,int(data[-1][0])+1):
         e1.append([])
@@ -152,7 +159,7 @@ while True:
         break
 
 data = getDataFromDB(id_s, test_type)
-tt=np.linspace(0, len(data[0][0])/128, num=len(data[0][0]))
+tt=np.linspace(0, len(data[0][0])/500, num=len(data[0][0]))
 Y=butter_filter(data[0][0])
 
 if (test_type == "mrh"):
@@ -169,7 +176,7 @@ elif (test_type == "r"):
 data = removeDC(data)
 sub_signals = downSampling(data,5)
 
-Fs = 128.0/5 # esto es porque fue submuestreado a 2
+Fs = 500/5 # esto es porque fue submuestreado a 2
 ts = 1/Fs
 time = np.arange(0,len(data[0][0]) * ts,ts)
 f, t, S = signal.spectrogram(sub_signals[0][0], fs=Fs, nperseg=32,nfft=32,noverlap=10)
