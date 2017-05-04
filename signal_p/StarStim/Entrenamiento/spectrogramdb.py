@@ -45,7 +45,7 @@ def getDataFromDB(id_s, test_type):
                                   database = 'vipdb')
     print("Hola mama2")
     cursor = cnx.cursor()
-    cursor.execute("select n_trial,e1,e2,e3,e4,e5,e6,e7,e8 from "+"s_"+id_s+" where(test_type = '"+test_type+"')")
+    cursor.execute("select n_trial,e1,e2,e3,e4,e5,e6,e7,e8 from "+"s_"+id_s+" WHERE (test_type = "+str(test_type)+")")
     #cursor.execute("SELECT n_trial,e1,e2,e3,e4,e5,e6,e7,e8 FROM vipdb.s_dayanST WHERE (test_type = 'mrh')")
     data = np.array(cursor.fetchall())
        # NB : you won't get an IntegrityError when reading    
@@ -116,7 +116,7 @@ def saveDataDB(sn_m):
     cnx.close()
     print "[!]Table 'c_"+id_s+"' added/updated"
     
-def butter_filter(data,lowcut = 3, highcut = 13,fs = 128, order = 6): # Filter
+def butter_filter(data,lowcut = 3, highcut = 13,fs = 500, order = 6): # Filter
     nyq = 0.5*fs
     high = highcut/nyq
     b, a = signal.butter(order, high, btype ='low')
@@ -127,12 +127,12 @@ def removeDC(data):
     for electrode in range(0,len(data)):
         for trial in range(0,len(data[electrode])):
 
-            v_trial = (data[electrode][trial] - np.mean(data[electrode][trial]))*(0.51*10**-6) # Señal sin media y escalada a voltaje
-            data[electrode][trial] = butter_filter(v_trial) # Señal filtrada
+            v_trial = (data[electrode][trial] - np.mean(data[electrode][trial])) # Señal sin media y escalada a voltaje
+            data[electrode][trial] = v_trial # Señal filtrada
     return data
 
-def downSampling(data, scale):
-    if (scale % 2):
+def downSampling(data, scale,fs):
+    if int(fs % 2):
         sub_signals = np.zeros((len(data), len(data[0]),len(data[0][0])/scale+1))
     else:
         sub_signals = np.zeros((len(data), len(data[0]),len(data[0][0])/scale))
@@ -153,15 +153,11 @@ while True:
   mod - mover objeto hacia abajo (se guardara con el id = 3 en la BD)
   r   - relajación  (se guardara con el id = 4 en la BD)
   => ''')
+    
     if not(test_type in test_types):
         print("[X] El identificador no se encuentra, por favor ingrese uno válido")
     else:
         break
-
-data = getDataFromDB(id_s, test_type)
-tt=np.linspace(0, len(data[0][0])/500, num=len(data[0][0]))
-Y=butter_filter(data[0][0])
-
 if (test_type == "mrh"):
     test_type=0
 elif (test_type == "mlh"):
@@ -172,12 +168,17 @@ elif (test_type == "mod"):
     test_type=3
 elif (test_type == "r"):
     test_type=4
+    
+data = getDataFromDB(id_s, test_type)
+tt=np.linspace(0, len(data[0][0])/500, num=len(data[0][0]))
+Y=butter_filter(data[0][0])
 
+scale= 10.0
+Fs = 500/scale # esto es porque fue submuestreado a 2
 data = removeDC(data)
-sub_signals = downSampling(data,5)
+sub_signals = downSampling(data,int(scale),Fs)
 
-Fs = 500/5 # esto es porque fue submuestreado a 2
-ts = 1/Fs
+ts = 1.0/Fs
 time = np.arange(0,len(data[0][0]) * ts,ts)
 f, t, S = signal.spectrogram(sub_signals[0][0], fs=Fs, nperseg=32,nfft=32,noverlap=10)
 ff = sub_signals.shape # Tamaño del array
@@ -187,7 +188,7 @@ for electrode in range(0,len(sub_signals)):
     for trial in range(0,len(sub_signals[electrode])):
         x = sub_signals[electrode][trial]
         _, _, S = signal.spectrogram(x, fs=Fs, nperseg=32,nfft=32,noverlap=10)
-        Sxx[i,0:3] =[electrode,test_type,trial]
+        Sxx[i,0:3] =[electrode+1,test_type,trial]
         Sxx[i,3::] = np.mean(S,axis=1)
         i+=1
 

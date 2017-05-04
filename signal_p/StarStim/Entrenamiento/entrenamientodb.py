@@ -1,10 +1,10 @@
-
 # -*- coding: utf-8 -*-
 # encoding: utf-8
 """
 Script entrenamiento para los dos dispositivos Emotiv Epoc
 """
 import mysql.connector
+import numpy as np
 import pygame
 import time 
 import random
@@ -43,7 +43,7 @@ class game(object):
         self.id_s = str(id_s)
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
-        #DOUBLEBUF
+      #  self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
         self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.clock = pygame.time.Clock()
@@ -103,7 +103,6 @@ class game(object):
         self.saveDataDB(j2, cl2)
         self.saveDataDB(j3, cl3)
         self.saveDataDB(j4, cl4)
-
 
     def moveRightHand(self,t):
         self.draw_text("Imagine que mueve la mano derecha",(100,255,100))
@@ -224,18 +223,33 @@ class game(object):
                                       host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
                                       database = 'vipdb')
         cursor = cnx.cursor()
-        
+        if (test_type == "mrh"):
+            test_type=0
+        elif (test_type == "mlh"):
+            test_type=1
+        elif (test_type == "mou"):
+            test_type=2
+        elif (test_type == "mod"):
+            test_type=3
+        elif (test_type == "r"):
+            test_type=4
         cursor.execute(add_table)
-        sn = [[self.n,test_type]+[0]*8]*len(dic_of_list[1])
+        #sn = [[self.n,test_type]+[0]*8]*len(dic_of_list[1])
+        #sn = np.zeros(len(dic_of_list[1]), dtype = "int8, string14, float32, float32, float32, float32, float32,float32,float32, float32")
+        
+        sn = np.zeros((len(dic_of_list[1]),len(dic_of_list)+2))
+        for i in range(0,len(dic_of_list[1])):
+            sn[i][0] = self.n
+            sn[i][1] = (test_type)
         for key, value in dic_of_list.iteritems():
             for i in range(len(dic_of_list[key])):
                 sn[i][key+1] = dic_of_list[key][i]
-        #print sn_m
-        cursor.executemany(add_data,sn)
+        cursor.executemany(add_data,sn.tolist())
         cnx.commit()
         cursor.close()
         cnx.close()
         print "[!]Table '"+"s_"+self.id_s+"' added/updated"
+        
 
 if __name__ == '__main__':
     id_s = raw_input("[!] Digite el identificador del sujeto: ")
