@@ -38,11 +38,17 @@ def getDataFromDB(id_s, test_type):
     and you try to get data[i][j], then you will get the data for the i electrode
     and the j trial.
     """
+    """
     print("Hola mama")
     cnx = mysql.connector.connect(user =     'root', 
                                   password = 'uniatlantico',
                                   host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
                                   database = 'vipdb')
+    """
+    cnx = mysql.connector.connect(user =     'root', 
+                                  password = '1234',
+                                  host =     'localhost',
+                                  database = 'Datos_temp')
     print("Hola mama2")
     cursor = cnx.cursor()
     cursor.execute("select n_trial,e1,e2,e3,e4,e5,e6,e7,e8 from "+"s_"+id_s+" WHERE (test_type = "+str(test_type)+")")
@@ -82,10 +88,17 @@ def getDataFromDB(id_s, test_type):
 def saveDataDB(sn_m):
     #conn = sqlite3.connect('database.db') #connection object
     #c = conn.cursor()
+    """
     cnx = mysql.connector.connect(user =     'root', 
                                   password = 'uniatlantico',
                                   host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
                                   database = 'vipdb')
+    """
+    cnx = mysql.connector.connect(user =     'root', 
+                                  password = '1234',
+                                  host =     'localhost',
+                                  database = 'Datos_temp')
+    
     cursor = cnx.cursor()
     # Create table   
     add_table = (
@@ -173,7 +186,7 @@ data = getDataFromDB(id_s, test_type)
 tt=np.linspace(0, len(data[0][0])/500, num=len(data[0][0]))
 Y=butter_filter(data[0][0])
 
-scale= 10.0
+scale= 1.0
 Fs = 500/scale # esto es porque fue submuestreado a 2
 data = removeDC(data)
 sub_signals = downSampling(data,int(scale),Fs)

@@ -9,7 +9,9 @@ import pygame
 import time 
 import random
 from pylsl import StreamInlet, resolve_stream
+import winsound         # for sound  
 # import winsound
+
 
 class game(object):
 
@@ -18,10 +20,13 @@ class game(object):
         """
         pygame.init()
         pygame.display.set_caption("VIP: BCI")
+        imagenR= pygame.image.load("R.png").convert()
+        imagenL= pygame.image.load("L.png").convert()
+        
         cnx = mysql.connector.connect(user =     'root', 
-                                      password = 'uniatlantico',
-                                      host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
-                                      database = 'vipdb')
+                                      password = '1234',
+                                      host =     'localhost',
+                                      database = 'Datos_temp')
         cursor = cnx.cursor()
         
         cursor.execute("show tables like 's_"+id_s+"'")
@@ -43,14 +48,16 @@ class game(object):
         self.id_s = str(id_s)
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
-      #  self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
-        self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
+        #self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
         self.background = pygame.Surface(self.screen.get_size()).convert()
+        self.screen.fill((255,255,255))#Fondo blanco
         self.clock = pygame.time.Clock()
         self.fps = fps
         self.playtime = 0.0
-        self.font = pygame.font.SysFont('mono', 20, bold=True)
-        self.f = [self.moveRightHand,self.moveLeftHand,self.moveObjectUp,self.moveObjectDown]
+        self.font = pygame.font.SysFont('mono', 40, bold=True)
+        #self.f = [self.moveRightHand,self.moveLeftHand,self.moveObjectUp,self.moveObjectDown]
+        self.f = [self.moveRightHand,self.moveLeftHand]
 
     def run(self):
         """The mainloop
@@ -68,7 +75,8 @@ class game(object):
                         self.preparation()
                         print ("[!] Preparation stage Finished")
                         self.n = self.n + 1
-                        self.f = [self.moveRightHand,self.moveLeftHand,self.moveObjectUp,self.moveObjectDown]
+                        #self.f = [self.moveRightHand,self.moveLeftHand,self.moveObjectUp,self.moveObjectDown]
+                        self.f = [self.moveRightHand,self.moveLeftHand]
             milliseconds = self.clock.tick(self.fps)
             self.playtime += milliseconds / 1000.0
             self.draw_text("BCI")
@@ -87,30 +95,40 @@ class game(object):
 
     def  preparation(self): 
         d1=self.rest(4)
+        winsound.Beep(440, 1000)
         j1,cl1=random.choice(self.f)(7)
         d2=self.rest(4)
+        winsound.Beep(440, 1000)
         j2,cl2=random.choice(self.f)(7)
+        
+        """
         d3=self.rest(4)
         j3,cl3=random.choice(self.f)(7)
         d4=self.rest(4)
         j4,cl4=random.choice(self.f)(7)
+        self.saveDataDB(d3, "r")
+        self.saveDataDB(d4, "r")
+        self.saveDataDB(j3, cl3)
+        self.saveDataDB(j4, cl4)
+        """
         self.Loading()
         self.saveDataDB(d1, "r")
         self.saveDataDB(d2, "r")
-        self.saveDataDB(d3, "r")
-        self.saveDataDB(d4, "r")
         self.saveDataDB(j1, cl1)
         self.saveDataDB(j2, cl2)
-        self.saveDataDB(j3, cl3)
-        self.saveDataDB(j4, cl4)
 
+        
     def moveRightHand(self,t):
-        self.draw_text("Imagine que mueve la mano derecha",(100,255,100))
+        self.draw_text("X",(100,255,100))
+        pygame.display.flip()
+        time.sleep(0.5)
+        self.screen.blit(self.background, (0, 0))
+        self.screen.blit(imagenR, [0, 0])
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-        time.sleep(0.5)
         d = self.getDataO(t)
         self.f.remove(self.moveRightHand)
+        
         clas="mrh"
         return d,clas
 
@@ -219,9 +237,9 @@ class game(object):
                        "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
         
         cnx = mysql.connector.connect(user =     'root', 
-                                      password = 'uniatlantico',
-                                      host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
-                                      database = 'vipdb')
+                                      password = '1234',
+                                      host =     'localhost',
+                                      database = 'Datos_temp')
         cursor = cnx.cursor()
         if (test_type == "mrh"):
             test_type=0
