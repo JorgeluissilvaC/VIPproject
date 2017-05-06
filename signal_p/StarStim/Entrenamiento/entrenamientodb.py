@@ -10,7 +10,6 @@ import time
 import random
 from pylsl import StreamInlet, resolve_stream
 import winsound         # for sound  
-# import winsound
 
 
 class game(object):
@@ -20,9 +19,7 @@ class game(object):
         """
         pygame.init()
         pygame.display.set_caption("VIP: BCI")
-        imagenR= pygame.image.load("R.png").convert()
-        imagenL= pygame.image.load("L.png").convert()
-        
+
         cnx = mysql.connector.connect(user =     'root', 
                                       password = '1234',
                                       host =     'localhost',
@@ -48,8 +45,8 @@ class game(object):
         self.id_s = str(id_s)
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
-        self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
-        #self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
+        #self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.screen.fill((255,255,255))#Fondo blanco
         self.clock = pygame.time.Clock()
@@ -58,7 +55,12 @@ class game(object):
         self.font = pygame.font.SysFont('mono', 40, bold=True)
         #self.f = [self.moveRightHand,self.moveLeftHand,self.moveObjectUp,self.moveObjectDown]
         self.f = [self.moveRightHand,self.moveLeftHand]
-
+        self.imagenR= pygame.image.load("R1.png").convert()
+        self.imagenL= pygame.image.load("R2.png").convert()
+        size_screen= self.screen.get_size();
+        self.x_center = size_screen[0]/2.0 - 210
+        self.y_center = size_screen[1]/2.0 - 210
+                                   
     def run(self):
         """The mainloop
         """
@@ -94,78 +96,43 @@ class game(object):
         self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
     def  preparation(self): 
-        d1=self.rest(4)
-        winsound.Beep(440, 1000)
+        d1=self.rest(4)     
         j1,cl1=random.choice(self.f)(7)
         d2=self.rest(4)
-        winsound.Beep(440, 1000)
         j2,cl2=random.choice(self.f)(7)
-        
-        """
-        d3=self.rest(4)
-        j3,cl3=random.choice(self.f)(7)
-        d4=self.rest(4)
-        j4,cl4=random.choice(self.f)(7)
-        self.saveDataDB(d3, "r")
-        self.saveDataDB(d4, "r")
-        self.saveDataDB(j3, cl3)
-        self.saveDataDB(j4, cl4)
-        """
         self.Loading()
+
         self.saveDataDB(d1, "r")
         self.saveDataDB(d2, "r")
         self.saveDataDB(j1, cl1)
         self.saveDataDB(j2, cl2)
-
         
     def moveRightHand(self,t):
         self.draw_text("X",(100,255,100))
         pygame.display.flip()
-        time.sleep(0.5)
+        winsound.Beep(440, 1000)
         self.screen.blit(self.background, (0, 0))
-        self.screen.blit(imagenR, [0, 0])
+        self.screen.blit(self.imagenR, [self.x_center, self.y_center])
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
+        time.sleep(4)
         d = self.getDataO(t)
         self.f.remove(self.moveRightHand)
-        
         clas="mrh"
         return d,clas
 
     def moveLeftHand(self,t):
-        self.draw_text("Imagine que mueve la mano izquierda",(100,255,100))
+        self.draw_text("X",(100,255,100))
         pygame.display.flip()
-        time.sleep(0.5)
+        winsound.Beep(440, 1000)
         self.screen.blit(self.background, (0, 0))
+        self.screen.blit(self.imagenL, [self.x_center, self.y_center])
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(4)
         d = self.getDataO(t)
         self.f.remove(self.moveLeftHand)
         clas="mlh"
-        return d,clas
-
-    def moveObjectUp(self,t): 
-        self.draw_text("Imagine que mueve el objeto hacia arriba",(100,255,100))
-        pygame.display.flip()
-        self.screen.blit(self.background, (0, 0))
-        time.sleep(4)
-        pygame.draw.rect(self.screen, (225,225,255), [self.width//2 - 50,self.height//2 - 50, 100, 100],0)
-        pygame.display.flip()
-        self.screen.blit(self.background, (0, 0))
-        d = self.getDataO(t)
-        self.f.remove(self.moveObjectUp)
-        clas="mou"
-        return d,clas
-
-    def moveObjectDown(self,t): 
-        self.draw_text("Imagine que mueve el objeto hacia abajo",(100,255,100))
-        pygame.display.flip()
-        self.screen.blit(self.background, (0, 0))
-        time.sleep(4)
-        pygame.draw.circle(self.screen, (255,255,255), (400,300), 5, 0)
-        pygame.display.flip()
-        self.screen.blit(self.background, (0, 0))
-        d = self.getDataO(t)
-        self.f.remove(self.moveObjectDown)
-        clas="mod"
         return d,clas
 
     def rest(self,t): 
@@ -174,6 +141,7 @@ class game(object):
         self.screen.blit(self.background, (0, 0))
         time.sleep(0.5)
         d = self.getDataO(t)
+        
         return d
     def Loading(self):
         self.draw_text("Cargando...",(100,255,100))
