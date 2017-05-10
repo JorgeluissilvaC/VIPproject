@@ -14,7 +14,7 @@ import winsound         # for sound
 
 class game(object):
 
-    def __init__ (self, id_s = "unknown", width = 800, height = 600, fps = 30):
+    def __init__ (self, id_s = "unknown",rept = 1, width = 800, height = 600, fps = 30):
         """Initialize pygame, window, background, font,...
         """
         pygame.init()
@@ -43,6 +43,7 @@ class game(object):
         self.width = width
         self.height = height
         self.id_s = str(id_s)
+        self.rept = int(rept)
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
         #self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
@@ -60,7 +61,7 @@ class game(object):
         size_screen= self.screen.get_size();
         self.x_center = size_screen[0]/2.0 - 210
         self.y_center = size_screen[1]/2.0 - 210
-                                   
+        
     def run(self):
         """The mainloop
         """
@@ -95,17 +96,20 @@ class game(object):
         # // makes integer division in python3
         self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
-    def  preparation(self): 
-        d1=self.rest(4)     
-        j1,cl1=random.choice(self.f)(7)
-        d2=self.rest(4)
-        j2,cl2=random.choice(self.f)(7)
-        self.Loading()
-
-        self.saveDataDB(d1, "r")
-        self.saveDataDB(d2, "r")
-        self.saveDataDB(j1, cl1)
-        self.saveDataDB(j2, cl2)
+    def  preparation(self):
+        ntrial=0
+        while (ntrial < self.rept):
+            d1=self.rest(4)
+            j1,cl1=random.choice(self.f)(7)
+            d2=self.rest(4)
+            j2,cl2=random.choice(self.f)(7)
+            self.Loading()
+            self.saveDataDB(d1, "r")
+            self.saveDataDB(d2, "r")
+            self.saveDataDB(j1, cl1)
+            self.saveDataDB(j2, cl2)
+            ntrial+=1
+            self.n+=1 
         
     def moveRightHand(self,t):
         self.draw_text("X",(100,255,100))
@@ -141,7 +145,6 @@ class game(object):
         self.screen.blit(self.background, (0, 0))
         time.sleep(0.5)
         d = self.getDataO(t)
-        
         return d
     def Loading(self):
         self.draw_text("Cargando...",(100,255,100))
@@ -235,10 +238,10 @@ class game(object):
         cursor.close()
         cnx.close()
         print "[!]Table '"+"s_"+self.id_s+"' added/updated"
-        
 
 if __name__ == '__main__':
     id_s = raw_input("[!] Digite el identificador del sujeto: ")
-    game(id_s, 800, 600).run()
+    rept = raw_input("[!] Digite la cantidad de pruebas a realizar: ")
+    game(id_s,rept, 800, 600).run()
 
 
