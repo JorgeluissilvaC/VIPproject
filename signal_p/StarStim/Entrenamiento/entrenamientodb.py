@@ -100,9 +100,9 @@ class game(object):
         ntrial=0
         while (ntrial < self.rept):
             d1=self.rest(4)
-            j1,cl1=random.choice(self.f)(7)
+            j1,cl1=self.moveRightHand(7)
             d2=self.rest(4)
-            j2,cl2=random.choice(self.f)(7)
+            j2,cl2=self.moveLeftHand(7)
             self.Loading()
             self.saveDataDB(d1, "r")
             self.saveDataDB(d2, "r")
@@ -114,28 +114,28 @@ class game(object):
     def moveRightHand(self,t):
         self.draw_text("X",(100,255,100))
         pygame.display.flip()
-        winsound.Beep(440, 1000)
+        winsound.Beep(440, 2000)
         self.screen.blit(self.background, (0, 0))
         self.screen.blit(self.imagenR, [self.x_center, self.y_center])
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
         time.sleep(4)
         d = self.getDataO(t)
-        self.f.remove(self.moveRightHand)
+  #      self.f.remove(self.moveRightHand)
         clas="mrh"
         return d,clas
 
     def moveLeftHand(self,t):
         self.draw_text("X",(100,255,100))
         pygame.display.flip()
-        winsound.Beep(440, 1000)
+        winsound.Beep(440, 2000)
         self.screen.blit(self.background, (0, 0))
         self.screen.blit(self.imagenL, [self.x_center, self.y_center])
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
         time.sleep(4)
         d = self.getDataO(t)
-        self.f.remove(self.moveLeftHand)
+   #     self.f.remove(self.moveLeftHand)
         clas="mlh"
         return d,clas
 
@@ -146,6 +146,7 @@ class game(object):
         time.sleep(0.5)
         d = self.getDataO(t)
         return d
+    
     def Loading(self):
         self.draw_text("Cargando...",(100,255,100))
         pygame.display.flip()

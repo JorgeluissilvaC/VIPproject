@@ -16,31 +16,38 @@ Tipos de prueba:
 id_s='julian' #Digite el sujeto
 test_type='all' #Digite el tripo de prueba
 
-cnx = mysql.connector.connect(user =     'root',
-                                  password = 'uniatlantico',
-                                  host =     'vipdb.cd4eqkinbht7.us-west-2.rds.amazonaws.com',
-                                  database = 'vipdb')
+cnx = mysql.connector.connect(user =     'root', 
+                              password = '1234',
+                              host =     'localhost',
+                              database = 'Datos_temp')
 cursor = cnx.cursor()
 if test_type == 'all':
-    get_data = ("SELECT test_type,electrode,F0,F08,F16,F24,F32,F4,F48,F56,F64,F72,F8,F88,F96,F104,F112,F12,F128"
-                " FROM c_" + id_s+" where (electrode = '11.0')")
+    
+    get_data = ("SELECT test_type,electrode,F0,F15,F31,F46,F62,F78,F93,F10,F12,F14,F156,F17,F18,F20,F21,F23,F25"
+                " FROM c_" + id_s)
+    
+
+    
 else:
-    get_data = ("SELECT F0,F08,F16,F24,F32,F4,F48,F56,F64,F72,F8,F88,F96,F104,F112,F12,F128"
+    get_data = ("SELECT F0,F15,F31,F46,F62,F78,F93,F10,F12,F14,F156,F17,F18,F20,F21,F23,F25"
                 " FROM c_" + id_s +" where (test_type = '"+test_type+"')")
 cursor.execute(get_data)
 data = np.array(cursor.fetchall())
 cursor.close()
 cnx.close()
 
-data_clms = ['F0','F08','F16','F24','F32','F4',
-             'F48','F56','F64','F72','F8','F88',
-             'F96','F104','F112','F12','F128','electrode','test_type']
-
+data_clms = ['F0','F15','F31','F46','F62','F78','F93','F10',
+             'F12','F14','F156','F17','F18','F20','F21','F23','F25'
+             ,'test_type','electrode']
 name = id_s + '.arff'
+das= np.roll(data,-2)
+"""
 a = data.copy()
 a[:,2::] = np.multiply(10**11,data[:,2::])
 test_typed = a[:,0]
 sensors = stats.zscore(data[:,1::])
 data[:,0:-1] = sensors
 data[:,-1] = test_typed
-arff.dump(name, data, relation = "whatever", names = data_clms)
+print data
+"""
+arff.dump(name, das, relation = "whatever", names = data_clms)

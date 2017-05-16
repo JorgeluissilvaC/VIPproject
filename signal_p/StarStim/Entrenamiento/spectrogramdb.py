@@ -107,29 +107,38 @@ def saveDataDB(sn_m):
             "  `electrode` int(11) NOT NULL,"
             "  `test_type` int(11) NOT NULL,"
             "  `n_trial` int(11) NOT NULL,"
-            "   `e1` REAL NOT NULL,"
-            "   `e2` REAL NOT NULL,"
-            "   `e3` REAL NOT NULL,"
-            "   `e4` REAL NOT NULL,"
-            "   `e5` REAL NOT NULL,"
-            "   `e6` REAL NOT NULL,"
-            "   `e7` REAL NOT NULL,"
-            "   `e8` REAL NOT NULL,"
+            "   `F0` REAL NOT NULL,"
+            "   `F15` REAL NOT NULL,"
+            "   `F31` REAL NOT NULL,"
+            "   `F46` REAL NOT NULL,"
+            "   `F62` REAL NOT NULL,"
+            "   `F78` REAL NOT NULL,"
+            "   `F93` REAL NOT NULL,"
+            "   `F10` REAL NOT NULL,"
+            "   `F12` REAL NOT NULL,"
+            "   `F14` REAL NOT NULL,"
+            "   `F156` REAL NOT NULL,"
+            "   `F17` REAL NOT NULL,"
+            "   `F18` REAL NOT NULL,"
+            "   `F20` REAL NOT NULL,"
+            "   `F21` REAL NOT NULL,"
+            "   `F23` REAL NOT NULL,"
+            "   `F25` REAL NOT NULL,"
             "  PRIMARY KEY (`n_sample`)"
             ") ENGINE=InnoDB")
     cursor.execute(add_table)
-    
     add_data = ("INSERT INTO c_"+id_s+
-                "(electrode,test_type,n_trial,e1,e2,e3,e4,e5,e6,e7,e8)"
-                "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s)")
+                "(electrode,test_type,n_trial,F0,F15,F31,F46,F62,F78,F93,F10,F12,F14,F156,F17,F18,F20,F21,F23,F25) "
+                "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s,%s, %s, %s, %s, %s,%s, %s,%s, %s)")
     #print sn_m
     cursor.executemany(add_data,sn_m)
+    print "hola mundo"
     cnx.commit()
     cursor.close()
     cnx.close()
     print "[!]Table 'c_"+id_s+"' added/updated"
     
-def butter_filter(data,lowcut = 3, highcut = 13,fs = 500, order = 6): # Filter
+def butter_filter(data,lowcut = 3, highcut = 25,fs = 500, order = 6): # Filter
     nyq = 0.5*fs
     high = highcut/nyq
     b, a = signal.butter(order, high, btype ='low')
@@ -186,9 +195,10 @@ data = getDataFromDB(id_s, test_type)
 tt=np.linspace(0, len(data[0][0])/500, num=len(data[0][0]))
 Y=butter_filter(data[0][0])
 
-scale= 1.0
+scale= 1
 Fs = 500/scale # esto es porque fue submuestreado a 2
 data = removeDC(data)
+data = butter_filter(data)
 sub_signals = downSampling(data,int(scale),Fs)
 
 ts = 1.0/Fs
@@ -205,4 +215,4 @@ for electrode in range(0,len(sub_signals)):
         Sxx[i,3::] = np.mean(S,axis=1)
         i+=1
 
-#saveDataDB(Sxx.tolist())
+saveDataDB(Sxx.tolist())
