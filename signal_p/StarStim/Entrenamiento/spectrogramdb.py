@@ -195,7 +195,7 @@ data = getDataFromDB(id_s, test_type)
 tt=np.linspace(0, len(data[0][0])/500, num=len(data[0][0]))
 Y=butter_filter(data[0][0])
 
-scale= 1
+scale= 10
 Fs = 500/scale # esto es porque fue submuestreado a 2
 data = removeDC(data)
 data = butter_filter(data)

@@ -13,7 +13,7 @@ Tipos de prueba:
   all - todas las ateriores
 """
 
-id_s='julian' #Digite el sujeto
+id_s='dayan' #Digite el sujeto
 test_type='all' #Digite el tripo de prueba
 
 cnx = mysql.connector.connect(user =     'root', 
