@@ -201,6 +201,7 @@ data = removeDC(data)
 data = butter_filter(data)
 sub_signals = downSampling(data,int(scale),Fs)
 
+
 ts = 1.0/Fs
 time = np.arange(0,len(data[0][0]) * ts,ts)
 f, t, S = signal.spectrogram(sub_signals[0][0], fs=Fs, nperseg=32,nfft=32,noverlap=10)

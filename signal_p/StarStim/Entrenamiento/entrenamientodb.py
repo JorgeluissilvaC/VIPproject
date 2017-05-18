@@ -103,7 +103,9 @@ class game(object):
             j1,cl1=self.moveRightHand(7)
             d2=self.rest(4)
             j2,cl2=self.moveLeftHand(7)
+            
             self.Loading()
+            
             self.saveDataDB(d1, "r")
             self.saveDataDB(d2, "r")
             self.saveDataDB(j1, cl1)
