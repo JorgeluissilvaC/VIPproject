@@ -102,7 +102,7 @@ def saveDataDB(sn_m):
     cursor = cnx.cursor()
     # Create table   
     add_table = (
-            "CREATE TABLE IF NOT EXISTS `c_"+id_s+"` ("
+            "CREATE TABLE IF NOT EXISTS `ce_"+id_s+"` ("
             "  `n_sample` int(11) NOT NULL AUTO_INCREMENT,"
             "  `electrode` int(11) NOT NULL,"
             "  `test_type` int(11) NOT NULL,"
@@ -127,7 +127,7 @@ def saveDataDB(sn_m):
             "  PRIMARY KEY (`n_sample`)"
             ") ENGINE=InnoDB")
     cursor.execute(add_table)
-    add_data = ("INSERT INTO c_"+id_s+
+    add_data = ("INSERT INTO ce_"+id_s+
                 "(electrode,test_type,n_trial,F0,F15,F31,F46,F62,F78,F93,F10,F12,F14,F156,F17,F18,F20,F21,F23,F25) "
                 "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s,%s, %s, %s, %s, %s,%s, %s,%s, %s)")
     #print sn_m
@@ -164,6 +164,16 @@ def downSampling(data, scale,fs):
             sub_signals[electrode][trial] = data[electrode][trial][::scale]
     return sub_signals
 
+def artifactRegression(data,reference):
+    reference = np.transpose(np.matrix(reference))
+    data = np.transpose(np.matrix(data))
+    op1 = (np.transpose(reference)*reference)/int(reference.shape[0]-1)
+    op2 = (np.transpose(reference)*data)/int(data.shape[0]-1)
+    coeff,_,_,_=np.linalg.lstsq(op1,op2)
+    data = data - reference*coeff
+    data = np.transpose(data)
+    return data
+
 
 test_types = ["r","mrh","mlh","mou","mod"]
 id_s = raw_input("[!] Digite el identificador del sujeto: ")
@@ -194,13 +204,30 @@ elif (test_type == "r"):
 data = getDataFromDB(id_s, test_type)
 tt=np.linspace(0, len(data[0][0])/500, num=len(data[0][0]))
 Y=butter_filter(data[0][0])
-
 scale= 10
 Fs = 500/scale # esto es porque fue submuestreado a 2
 data = removeDC(data)
 data = butter_filter(data)
-sub_signals = downSampling(data,int(scale),Fs)
+data_temp = np.zeros((len(data),len(data[0]),500*4))
+for electrode in range(0,len(data)):
+    for trial in range(0,len(data[0])):
+        data_temp[electrode][trial] = data[electrode][trial][1000:3000]
 
+data = data_temp
+"""
+tmpRef = np.zeros((2,len(data[0][0])))
+data_s = np.zeros((2,len(data[0][0])))
+tmp_data=np.zeros((2,len(data[0]),len(data[0][0])))
+for trial in range(0,len(data[0])):
+    tmpRef[0] = data[0][trial]
+    tmpRef[1] = data[1][trial]
+    data_s[0] = data[4][trial]
+    data_s[1] = data[5][trial]
+    tmp_data[:,trial,:] = artifactRegression(data_s,tmpRef)
+    
+#sub_signals = downSampling(tmp_data,int(scale),Fs)
+"""
+sub_signals = downSampling(data,int(scale),Fs)
 
 ts = 1.0/Fs
 time = np.arange(0,len(data[0][0]) * ts,ts)

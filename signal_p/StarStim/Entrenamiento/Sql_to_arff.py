@@ -14,7 +14,7 @@ Tipos de prueba:
   all - todas las ateriores
 """
 
-id_s='jorges' #Digite el sujeto
+id_s='dayan' #Digite el sujeto
 test_type='all' #Digite el tripo de prueba
 
 cnx = mysql.connector.connect(user =     'root', 
@@ -25,7 +25,7 @@ cursor = cnx.cursor()
 if test_type == 'all':
     
     get_data = ("SELECT test_type,electrode,F0,F15,F31,F46,F62,F78,F93,F10,F12,F14,F156,F17,F18,F20,F21,F23,F25"
-                " FROM c_" + id_s)
+                " FROM ce_" + id_s)
     
     data_clms = ['F0','F15','F31','F46','F62','F78','F93','F10',
              'F12','F14','F156','F17','F18','F20','F21','F23','F25'
@@ -38,7 +38,7 @@ elif test_type == 'time':
     
 else:
     get_data = ("SELECT F0,F15,F31,F46,F62,F78,F93,F10,F12,F14,F156,F17,F18,F20,F21,F23,F25"
-                " FROM c_" + id_s +" where (test_type = '"+test_type+"')")
+                " FROM ce_" + id_s +" where (test_type = '"+test_type+"')")
     data_clms = ['F0','F15','F31','F46','F62','F78','F93','F10',
              'F12','F14','F156','F17','F18','F20','F21','F23','F25'
              ,'test_type','electrode']
@@ -54,5 +54,6 @@ if test_type == 'all':
     das= np.roll(data,-2)
 else:
     das = np.roll(data,-1)
-das = das.astype(np.float)
+    das = das.astype(np.float)
+
 arff.dump(name, das, relation = "whatever", names = data_clms)
