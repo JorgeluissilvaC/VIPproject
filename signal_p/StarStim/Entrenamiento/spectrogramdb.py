@@ -19,6 +19,11 @@ from scipy import signal
 import numpy as np
 import copy
 import mysql.connector
+from sklearn import svm
+#from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+from sklearn import preprocessing
+from sklearn import decomposition
 
 def getDataFromDB(id_s, test_type):
     """Get all the trials of some subject(id_s) of some test(type_test)
@@ -234,6 +239,8 @@ time = np.arange(0,len(data[0][0]) * ts,ts)
 f, t, S = signal.spectrogram(sub_signals[0][0], fs=Fs, nperseg=32,nfft=32,noverlap=10)
 ff = sub_signals.shape # Tamaño del array
 Sxx = np.zeros((ff[0]*ff[1],len(f)+3))
+feat = np.zeros((ff[0]*ff[1]*2,len(f)))
+label = np.zeros((ff[0]*ff[1]*2))
 i=0
 for electrode in range(0,len(sub_signals)):
     for trial in range(0,len(sub_signals[electrode])):
@@ -241,6 +248,70 @@ for electrode in range(0,len(sub_signals)):
         _, _, S = signal.spectrogram(x, fs=Fs, nperseg=32,nfft=32,noverlap=10)
         Sxx[i,0:3] =[electrode+1,test_type,trial]
         Sxx[i,3::] = np.mean(S,axis=1)
+        feat[i,:] = np.mean(S,axis=1);
         i+=1
+        
+label[0:len(label)/2]=0
+     
+#Segunda Parte     
+test_type = "mlh"
 
-saveDataDB(Sxx.tolist())
+if (test_type == "mrh"):
+    test_type=0
+elif (test_type == "mlh"):
+    test_type=1
+elif (test_type == "mou"):
+    test_type=2
+elif (test_type == "mod"):
+    test_type=3
+elif (test_type == "r"):
+    test_type=4
+    
+data = getDataFromDB(id_s, test_type)
+tt=np.linspace(0, len(data[0][0])/500, num=len(data[0][0]))
+Y=butter_filter(data[0][0])
+scale= 10
+Fs = 500/scale # esto es porque fue submuestreado a 2
+data = removeDC(data)
+data = butter_filter(data)
+data_temp = np.zeros((len(data),len(data[0]),int(500*4)))
+for electrode in range(0,len(data)):
+    for trial in range(0,len(data[0])):
+        data_temp[electrode][trial] = data[electrode][trial][1000:3000]
+
+data = data_temp
+sub_signals = downSampling(data,int(scale),Fs)
+ts = 1.0/Fs
+time = np.arange(0,len(data[0][0]) * ts,ts)
+f, t, S = signal.spectrogram(sub_signals[0][0], fs=Fs, nperseg=32,nfft=32,noverlap=10)
+ff = sub_signals.shape # Tamaño del array
+Sxx = np.zeros((ff[0]*ff[1],len(f)+3))
+i=0
+i2=len(label)/2;
+for electrode in range(0,len(sub_signals)):
+    for trial in range(0,len(sub_signals[electrode])):
+        x = sub_signals[electrode][trial]
+        _, _, S = signal.spectrogram(x, fs=Fs, nperseg=32,nfft=32,noverlap=10)
+        Sxx[i,0:3] =[electrode+1,test_type,trial]
+        Sxx[i,3::] = np.mean(S,axis=1)
+        feat[i2,:] = np.mean(S,axis=1);
+        i+=1
+        i2+=1
+        
+label[len(label)/2:len(label)]=1
+#X_train, X_test, y_train, y_test = train_test_split(feat,label, test_size = 0.4,random_state=0)
+min_max_scaler = preprocessing.MinMaxScaler()
+X_train_minmax = min_max_scaler.fit_transform(feat)
+
+"""
+pca = decomposition.PCA(n_components=len(feat))
+pca.fit(feat)
+V = pca.components_
+"""
+
+clf = clf = svm.SVC(kernel='linear', C=1)
+scores = cross_val_score(clf, X_train_minmax, label, cv=10)
+scores.mean()
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+#saveDataDB(Sxx.tolist())
