@@ -19,6 +19,9 @@ from scipy import signal
 import numpy as np
 import scipy.io as sio
 import matplotlib.pylab as plt
+from sklearn.model_selection import cross_val_score
+from sklearn import preprocessing
+from sklearn import decomposition
 
 def getDataFromDB(id_s):
     mat_contents = sio.loadmat(id_s)
@@ -46,8 +49,8 @@ def removeDC(data):
             ndata[trial][electrode] = v_trial # guardamos señal sin DC
     return ndata
 
-def downSampling(data, sc, fs):
-    if int(fs % 2):
+def downSampling(data, sc, Fs):
+    if int(Fs % 2):
         sub_signals = np.zeros((len(data), len(data[0]), len(data[0][0])/sc+1))
     else:
         sub_signals = np.zeros((len(data), len(data[0]), len(data[0][0])/sc))
@@ -76,21 +79,20 @@ scale= 10
 Fs = 500/scale # esto es porque fue submuestreado a 2
 sub_signals = downSampling(Y,int(scale),Fs)
 
-#"""
-#sub_signals = downSampling(data,int(scale),Fs)
-#
-#ts = 1.0/Fs
-#time = np.arange(0,len(data[0][0]) * ts,ts)
-#f, t, S = signal.spectrogram(sub_signals[0][0], fs=Fs, nperseg=32,nfft=32,noverlap=10)
-#ff = sub_signals.shape # Tamaño del array
+ts = 1.0/Fs
+time = np.arange(0,len(data[0][0]) * ts,ts)
+f, t, S = signal.spectrogram(sub_signals, fs=Fs)
+ff = sub_signals.shape # Tamaño del array
+m_f = np.mean(S, axis = 3) # Potencia promedio para cada frecuencia
+feat = np.reshape(m_f, (ff[0]*ff[1],m_f.shape[2]))
+label = np.zeros((ff[0]*ff[1]))
+
+#plt.pcolormesh(t, f, S)
+#plt.ylabel('Frequency [Hz]')
+#plt.xlabel('Time [sec]')
+#plt.show()
 #Sxx = np.zeros((ff[0]*ff[1],len(f)+3))
 #i=0
-#for electrode in range(0,len(sub_signals)):
-#    for trial in range(0,len(sub_signals[electrode])):
-#        x = sub_signals[electrode][trial]
-#        _, _, S = signal.spectrogram(x, fs=Fs, nperseg=32,nfft=32,noverlap=10)
-#        Sxx[i,0:3] =[electrode+1,test_type,trial]
-#        Sxx[i,3::] = np.mean(S,axis=1)
-#        i+=1
+
 #
 #saveDataDB(Sxx.tolist())
