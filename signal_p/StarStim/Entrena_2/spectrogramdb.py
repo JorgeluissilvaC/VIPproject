@@ -22,6 +22,7 @@ import matplotlib.pylab as plt
 from sklearn.model_selection import cross_val_score
 from sklearn import preprocessing
 from sklearn import decomposition
+from sklearn import svm
 
 def getDataFromDB(id_s):
     mat_contents = sio.loadmat(id_s)
@@ -29,7 +30,10 @@ def getDataFromDB(id_s):
     rel = mat_contents['rel']
     conc = np.transpose(conc, (2, 1, 0))
     rel = np.transpose(rel, (2, 1, 0))
-    return conc, rel
+    data_time = np.zeros((len(conc)*2,len(conc[0]),len(conc[0][0])))
+    data_time[0:len(conc)] = conc
+    data_time[len(conc)::] = rel          
+    return data_time
 
 
 def butter_filter(data, lowcut=3, highcut=25, fs=500, order=6): # Filter
@@ -72,7 +76,7 @@ def artifactRegression(data,reference):
 
 id_s = raw_input("[!] Digite el identificador del sujeto: ")
 
-[datac, datar] = getDataFromDB(id_s)
+datac = getDataFromDB(id_s)
 data = removeDC(datac)
 Y=butter_filter(data)
 scale= 10
@@ -86,13 +90,22 @@ ff = sub_signals.shape # Tamaño del array
 m_f = np.mean(S, axis = 3) # Potencia promedio para cada frecuencia
 feat = np.reshape(m_f, (ff[0]*ff[1],m_f.shape[2]))
 label = np.zeros((ff[0]*ff[1]))
+label[0:len(label)/2] = 1
+label[len(label)/2::] = 2
 
-#plt.pcolormesh(t, f, S)
-#plt.ylabel('Frequency [Hz]')
-#plt.xlabel('Time [sec]')
-#plt.show()
-#Sxx = np.zeros((ff[0]*ff[1],len(f)+3))
-#i=0
+"""
+Clasificación 
+"""      
+min_max_scaler = preprocessing.MinMaxScaler()
+X_train_minmax = min_max_scaler.fit_transform(feat)
 
-#
-#saveDataDB(Sxx.tolist())
+"""
+pca = decomposition.PCA(n_components=len(feat))
+pca.fit(feat)
+V = pca.components_
+"""
+clf = clf = svm.SVC(kernel='linear', C=1)
+scores = cross_val_score(clf, X_train_minmax, label, cv=10)
+scores.mean()
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
