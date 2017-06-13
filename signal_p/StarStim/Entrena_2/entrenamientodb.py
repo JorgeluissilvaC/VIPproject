@@ -4,10 +4,11 @@
 Script entrenamiento para los dos dispositivos Emotiv Epoc
 """
 import pygame
+import random
 import time 
 import numpy as np
 import scipy.io as sio
-#import winsound         # for sound  
+import winsound         # for sound  
 from pylsl import StreamInlet, resolve_stream
 """
 Tareas:
@@ -29,8 +30,8 @@ class game(object):
         self.rept = int(rept)
         #self.height = width // 4
         self.dimensions = (self.width, self.height)
-        self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
-        #self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
+        #self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.screen.fill((255,255,255))#Fondo blanco
         self.clock = pygame.time.Clock()
@@ -63,7 +64,7 @@ class game(object):
             self.screen.blit(self.background, (0, 0))
         pygame.quit()
 
-    def draw_text(self, text, color = (0, 255, 150), dw = 0, dh = 0):
+    def draw_text(self, text, color = (100, 255, 100), dw = 0, dh = 0):
         """Center text in window"""
         fw, fh = self.font.size(text) # fw: font width,  fh: font height
         surface = self.font.render(text, True, color)
@@ -72,14 +73,15 @@ class game(object):
 
     def  preparation(self):
         ntrial = 0
-        t = 1; #tiempo de muestra
+        t = 25; #tiempo de muestra
         datac = np.zeros((self.rept,t*500,8));
         datar = np.zeros((self.rept,t*500,8));
                         
         while(ntrial < self.rept):
-            self.rest(1)
+            self.rest(10)
             j1 = self.concentration(t)
-            self.rest(1)
+            winsound.Beep(800, 2000)
+            self.rest(10)
             j2 = self.relaxation(t)
             self.Loading()
             datac[ntrial]=j1
@@ -88,20 +90,19 @@ class game(object):
         self.saveDataDB(self.id_s,datac,datar)
         
     def concentration(self,t):
-        self.draw_text("Concentrese",(100,255,100))
+        g=random.randint(100,200)
+        self.draw_text(str(g),(100,255,100))
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-        time.sleep(t)
-        #winsound.Beep(440, 2000)
+        winsound.Beep(800, 2000)
         d = self.getDataO(t)
         return d
-
+        
     def relaxation(self,t):
-        self.draw_text("Relajese",(100,255,100))
+        self.draw_text("[+]",(100,255,100))
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-        time.sleep(t)
-        #winsound.Beep(440, 2000)
+        winsound.Beep(800, 2000)
         d = self.getDataO(t)
         return d
 
