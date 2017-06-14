@@ -18,7 +18,7 @@ Tipos de prueba:
 from scipy import signal
 import scipy.io as sio
 import numpy as np
-#import matplotlib.pylab as plt
+import matplotlib.pylab as plt
 from sklearn.model_selection import cross_val_score
 from sklearn import preprocessing
 #from sklearn import decomposition
@@ -32,6 +32,8 @@ def get_data_db(id_s):
     rel = mat_contents['rel']
     conc = np.transpose(conc, (2, 1, 0))
     rel = np.transpose(rel, (2, 1, 0))
+    conc = np.reshape(conc, (len(conc)*5,8,2500))
+    rel = np.reshape(rel, (len(rel)*5,8,2500))
     data_time = np.zeros((len(conc)*2, len(conc[0]), len(conc[0][0])))
     data_time[0:len(conc)] = conc
     data_time[len(conc)::] = rel
@@ -59,10 +61,10 @@ def remove_dc(data):
             ndata[trial][electrode] = v_trial # guardamos señal sin DC
     return ndata
 
-def down_sampling(data, sc_v, fqc):
+def down_sampling(data, sc_v, div):
     """Reduce la frecuencia de muestreo de una señal.
     """
-    if int(Fs % 2):
+    if (div != 0):
         sub_signals = np.zeros((len(data), len(data[0]), len(data[0][0])/sc_v+1))
     else:
         sub_signals = np.zeros((len(data), len(data[0]), len(data[0][0])/sc_v))
@@ -88,13 +90,14 @@ S_ID = raw_input("[!] Digite el identificador del sujeto: ")
 DATA = get_data_db(S_ID)
 D_DC = remove_dc(DATA) # Datos sin DC
 Y = butter_filter(D_DC)
-SCALE = 10
+SCALE = 8
 FS = 500/SCALE # esto es porque fue submuestreado a 2
-SUB_SIGNAL = down_sampling(Y, int(SCALE), FS)
+DIV = 500.0/SCALE
+SUB_SIGNAL = down_sampling(Y, int(SCALE), DIV)
 
 TS = 1.0/FS
 TIME = np.arange(0, len(D_DC[0][0]) * TS, TS)
-F, T, S = signal.spectrogram(SUB_SIGNAL, fs=FS)
+F, T, S = signal.spectrogram(SUB_SIGNAL, fs=FS,nfft = 256, nperseg = 200)
 ff = SUB_SIGNAL.shape # Tamaño del array
 M_F = np.mean(S, axis=3) # Potencia promedio para cada frecuencia
 FEATS = np.reshape(M_F, (ff[0]*ff[1], M_F.shape[2]))
@@ -114,6 +117,10 @@ pca.fit(feat)
 V = pca.components_
 """
 clf = svm.SVC(kernel='linear', C=1)
-scores = cross_val_score(clf, X_train_minmax, LABELS, cv=10)
+scores = cross_val_score(clf, X_train_minmax, LABELS, cv=8)
 scores.mean()
 print "Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2)
+#plt.pcolormesh(T, F, S[0][0])
+#plt.ylabel('Frequency [Hz]')
+#plt.xlabel('Time [sec]')
+#plt.show()
