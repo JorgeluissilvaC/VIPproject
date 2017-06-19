@@ -64,7 +64,7 @@ def remove_dc(data):
 def down_sampling(data, sc_v, div):
     """Reduce la frecuencia de muestreo de una señal.
     """
-    if ((div%2) != 0):
+    if ((div % 2) != 0):
         sub_signals = np.zeros((len(data), len(data[0]), len(data[0][0])/sc_v+1))
     else:
         sub_signals = np.zeros((len(data), len(data[0]), len(data[0][0])/sc_v))
@@ -93,14 +93,24 @@ Y = butter_filter(D_DC)
 SCALE = 10
 FS = 500/SCALE # esto es porque fue submuestreado a 2
 DIV = 500.0/SCALE
-SUB_SIGNAL = down_sampling(Y, int(SCALE), DIV)
+sub_signal = down_sampling(Y, int(SCALE), DIV)
 
 TS = 1.0/FS
 TIME = np.arange(0, len(D_DC[0][0]) * TS, TS)
-F, T, S = signal.spectrogram(SUB_SIGNAL, fs=FS)
-ff = SUB_SIGNAL.shape # Tamaño del array
-M_F = np.mean(S, axis=3) # Potencia promedio para cada frecuencia
-FEATS = np.reshape(M_F, (ff[0]*ff[1], M_F.shape[2]))
+widths = np.arange(1, 10)
+c = 0
+cwtmatr = np.mean(signal.cwt(sub_signal[0][0], signal.ricker, widths), axis = 0)
+
+ff = sub_signal.shape # Tamaño del array
+feats = np.zeros((ff[0]*ff[1],len(cwtmatr)))
+
+for trial in range(0, len(sub_signal)):
+    for electrode in range(0, len(sub_signal[trial])):
+        cwtmatr = np.mean(signal.cwt(sub_signal[trial][electrode],
+                                     signal.ricker, widths), axis = 0)
+        feats[c, :]= cwtmatr
+        c+=1
+
 LABELS = np.zeros((ff[0]*ff[1]))
 LABELS[0:len(LABELS)/2] = 1
 LABELS[len(LABELS)/2::] = 2
@@ -109,7 +119,7 @@ LABELS[len(LABELS)/2::] = 2
 Clasificación
 """
 min_max_scaler = preprocessing.MinMaxScaler()
-X_train_minmax = min_max_scaler.fit_transform(FEATS)
+X_train_minmax = min_max_scaler.fit_transform(feats)
 
 """
 pca = decomposition.PCA(n_components=len(feat))
@@ -117,7 +127,7 @@ pca.fit(feat)
 V = pca.components_
 """
 clf = svm.SVC(kernel='linear', C=1)
-scores = cross_val_score(clf, X_train_minmax, LABELS, cv=8)
+scores = cross_val_score(clf, X_train_minmax, LABELS, cv=10)
 scores.mean()
 print "Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2)
 #plt.pcolormesh(T, F, S[0][0])

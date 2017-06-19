@@ -236,7 +236,7 @@ sub_signals = downSampling(data,int(scale),Fs)
 
 ts = 1.0/Fs
 time = np.arange(0,len(data[0][0]) * ts,ts)
-f, t, S = signal.spectrogram(sub_signals[0][0], fs=Fs, nperseg=32,nfft=32,noverlap=10)
+f, t, S = signal.spectrogram(sub_signals[0][0], fs=Fs)
 ff = sub_signals.shape # Tamaño del array
 Sxx = np.zeros((ff[0]*ff[1],len(f)+3))
 feat = np.zeros((ff[0]*ff[1]*2,len(f)))
@@ -245,7 +245,7 @@ i=0
 for electrode in range(0,len(sub_signals)):
     for trial in range(0,len(sub_signals[electrode])):
         x = sub_signals[electrode][trial]
-        _, _, S = signal.spectrogram(x, fs=Fs, nperseg=32,nfft=32,noverlap=10)
+        _, _, S = signal.spectrogram(x, fs=Fs)
         Sxx[i,0:3] =[electrode+1,test_type,trial]
         Sxx[i,3::] = np.mean(S,axis=1)
         feat[i,:] = np.mean(S,axis=1);
@@ -283,7 +283,7 @@ data = data_temp
 sub_signals = downSampling(data,int(scale),Fs)
 ts = 1.0/Fs
 time = np.arange(0,len(data[0][0]) * ts,ts)
-f, t, S = signal.spectrogram(sub_signals[0][0], fs=Fs, nperseg=32,nfft=32,noverlap=10)
+f, t, S = signal.spectrogram(sub_signals[0][0], fs=Fs)
 ff = sub_signals.shape # Tamaño del array
 Sxx = np.zeros((ff[0]*ff[1],len(f)+3))
 i=0
@@ -291,7 +291,7 @@ i2=len(label)/2;
 for electrode in range(0,len(sub_signals)):
     for trial in range(0,len(sub_signals[electrode])):
         x = sub_signals[electrode][trial]
-        _, _, S = signal.spectrogram(x, fs=Fs, nperseg=32,nfft=32,noverlap=10)
+        _, _, S = signal.spectrogram(x, fs=Fs)
         Sxx[i,0:3] =[electrode+1,test_type,trial]
         Sxx[i,3::] = np.mean(S,axis=1)
         feat[i2,:] = np.mean(S,axis=1);
