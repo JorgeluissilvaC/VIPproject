@@ -27,19 +27,33 @@ from sklearn import svm
 def get_data_db(id_s):
     """importa los datos del dataset(.mat).
     """
+    sub=2
     mat_contents = sio.loadmat(id_s)
     conc = mat_contents['conc']
     rel = mat_contents['rel']
     conc = np.transpose(conc, (2, 1, 0))
     rel = np.transpose(rel, (2, 1, 0))
-    conc = np.reshape(conc, (len(conc)*5,8,2500))
-    rel = np.reshape(rel, (len(rel)*5,8,2500))
+    conc = OrderData(conc,sub)
+    rel = OrderData(rel,sub)
     data_time = np.zeros((len(conc)*2, len(conc[0]), len(conc[0][0])))
     data_time[0:len(conc)] = conc
     data_time[len(conc)::] = rel
     return data_time
 
-
+def OrderData(a,sub):
+    """Se ordenan los datos para conservar los valores de los electrodos
+    """
+    dim=a.shape
+    pb=np.zeros((dim[0]*sub,dim[1],dim[2]/sub))
+    for i in range(0,dim[1]):
+        r=0
+        for j in range(0,dim[0]):
+            o=np.reshape(a[j,i,:],(sub,dim[2]/sub))
+            pb[0+r:sub+r,i,:]=o
+            r=r+sub
+            pass      
+    return pb
+    
 def butter_filter(data, highcut=25, fqc=500, order=6):
     """Filtro pasabajas.
     """
