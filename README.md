@@ -7,11 +7,11 @@ All documentation found in the following is **subject of change.**
 ## Description
 This is a platform for the construction of a BCI system. For this work we can categorize the hole work into 5 *steps* as it's shown in the following.
 
-* **First: *data acquisition*.** Here we take the signals from the Starstim and save it in a file.
-* **Second: *signal processing*.** where the signal is filtered, subsampling and pased by a spectrogram.
-* **Third: *training*.**
-* **Fourth: *Classification*.**
-* **Fifth: *Application*.**
+* ***data acquisition:*** Here we take the signals from the Starstim and save it in a file.
+* ***signal processing:*** where the signal is filtered, subsampling and pased by a spectrogram.
+* ***training:***
+* ***Classification:***
+* ***Application:***
 
 ## Installation
 
