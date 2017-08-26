@@ -32,13 +32,20 @@ def get_data_db(id_s):
     mat_contents = sio.loadmat(id_s)
     conc = mat_contents['conc']
     rel = mat_contents['rel']
-    conc = np.transpose(conc, (2, 1, 0))
-    rel = np.transpose(rel, (2, 1, 0))
+    dim=len(rel.shape)
+    if (dim==3):
+        conc = np.transpose(conc, (2, 1, 0))
+        rel = np.transpose(rel, (2, 1, 0))
+        data_time = np.zeros((len(conc)*2, len(conc[0]), len(conc[0][0])))
+        data_time[0:len(conc)] = conc
+        data_time[len(conc)::] = rel
+        
+    if (dim ==2):
+        data_time = np.zeros((2,len(conc), len(conc[0])))
+        data_time[0:len(conc)] = conc
+        data_time[len(conc)::] = rel
    # conc = np.reshape(conc, (len(conc)*5,8,2500))
    # rel = np.reshape(rel, (len(rel)*5,8,2500))
-    data_time = np.zeros((len(conc)*2, len(conc[0]), len(conc[0][0])))
-    data_time[0:len(conc)] = conc
-    data_time[len(conc)::] = rel
     return data_time
 
 
@@ -54,26 +61,47 @@ def butter_filter(data, highcut=25, fqc=500, order=6):
 def remove_dc(data):
     """ Remueve el DC de una señal.
     """
+    dim = len(data.shape)
     ndata = np.zeros(np.shape(data))
-    mean_v = np.mean(data, axis=2)
-    for trial in range(0, len(data)):
-        for electrode in range(0, len(data[trial])):
-            # Señal original -  señal DC
-            v_trial = (data[trial][electrode] - mean_v[trial][electrode])
-            ndata[trial][electrode] = v_trial # guardamos señal sin DC
+    if (dim == 3):
+        mean_v = np.mean(data, axis=2)
+        for trial in range(0, len(data)):
+            for electrode in range(0, len(data[trial])):
+                # Señal original -  señal DC
+                v_trial = (data[trial][electrode] - mean_v[trial][electrode])
+                ndata[trial][electrode] = v_trial # guardamos señal sin DC
+    
+    elif (dim == 2):
+        mean_v = np.mean(data, axis=1)
+        for electrode in range(0, len(data)):
+                # Señal original -  señal DC
+                v_trial = (data[electrode] - mean_v[electrode])
+                ndata[trial] = v_trial # guardamos señal sin DC
+                
     return ndata, mean_v
 
 def down_sampling(data, sc_v, div):
     """Reduce la frecuencia de muestreo de una señal.
     """
-    if ((div % 2) != 0):
-        sub_signals = np.zeros((len(data), len(data[0]), len(data[0][0])/sc_v+1))
-    else:
-        sub_signals = np.zeros((len(data), len(data[0]), len(data[0][0])/sc_v))
-
-    for trial in range(0, len(data)):
-        for electrode in range(0, len(data[trial])):
-            sub_signals[trial][electrode] = data[trial][electrode][::sc_v]
+    dim = len(data.shape)
+    if (dim == 3):
+        if ((div % 2) != 0):
+            sub_signals = np.zeros((len(data), len(data[0]), len(data[0][0])/sc_v+1))
+        else:
+            sub_signals = np.zeros((len(data), len(data[0]), len(data[0][0])/sc_v))
+    
+        for trial in range(0, len(data)):
+            for electrode in range(0, len(data[trial])):
+                sub_signals[trial][electrode] = data[trial][electrode][::sc_v]
+    
+    elif (dim == 2):    
+        if ((div % 2) != 0):
+            sub_signals = np.zeros((len(data), len(data[0])/sc_v+1))
+        else:
+            sub_signals = np.zeros((len(data), len(data[0])/sc_v))
+        for number in range(0, len(data)):
+                sub_signals[number] = data[number][::sc_v]
+        
     return sub_signals
 
 def artifact_regression(data, reference):
@@ -91,7 +119,7 @@ def power(data):
     power = (sum(np.abs(data)**2))/len(data)
     return power
 
-S_ID = raw_input("[!] Digite el identificador del sujeto: ")
+S_ID = "dayan0407"
 
 DATA = get_data_db(S_ID)
 [D_DC, m_v] = remove_dc(DATA) # Datos sin DC
@@ -102,29 +130,45 @@ DIV = 500.0/SCALE
 SUB_SIGNAL = down_sampling(Y, int(SCALE), DIV)
 
 TS = 1.0/FS
+Wsize = round(0.5*FS)
+Wnover = round(0.4*FS)
+Windw = signal.hamming(Wsize)
 TIME = np.arange(0, len(D_DC[0][0]) * TS, TS)
-F, T, S = signal.spectrogram(SUB_SIGNAL, fs=FS,nfft=256, nperseg=200, noverlap=100)
+F, T, S = signal.spectrogram(SUB_SIGNAL, fs=FS, window=Windw,nperseg=Wsize, noverlap=Wnover)
 ff = SUB_SIGNAL.shape # Tamaño del array
-frang = ((F>=8)*(F<=12))#+((F>=16)*(F<=31))
-M_F = np.mean(S[:,:,frang,:], axis=3) # Potencia promedio para cada frecuencia
-FEATS = np.reshape(M_F, (ff[0]*ff[1], M_F.shape[2]))
-LABELS = np.zeros((ff[0]*ff[1]))
-LABELS[0:len(LABELS)/2] = 1
-LABELS[len(LABELS)/2::] = 2
-"""D.O. & T.C. """
-min_max_scaler = preprocessing.MinMaxScaler()
-X_train_minmax = min_max_scaler.fit_transform(FEATS)
+frang = ((F>=16)*(F<=31))#+((F>=16)*(F<=31))
+Pow_m1 = np.mean(S[0:len(S)/2,:,frang,:], axis=0)
+Pow_m2 = np.mean(S[len(S)/2::,:,frang,:], axis=0)  # Potencia promedio para cada frecuencia
+Pow_m1 = np.mean(Pow_m1,axis=1)
+Pow_m2 = np.mean(Pow_m2,axis=1)
+f, axarr = plt.subplots(4,2, sharex=True)
+ind_grap = 0
+for i in range(len(axarr)):
+    for j in range(len(axarr[0])):
+        axarr[i,j].plot(T, Pow_m1[ind_grap],T, Pow_m2[ind_grap])
+        print ind_grap
+        ind_grap +=1
+    #axarr[0].set_title('Average of Power from 0-30 Hz')
+#M_F_all = np.mean(S, axis=3) # Potencia promedio para cada frecuencia
 
-"""
-pca = decomposition.PCA(n_components=len(feat))
-pca.fit(feat)
-V = pca.components_
-"""
-clf = svm.SVC(kernel='linear', C=1)
-#scores = cross_val_score(clf, X_train_minmax, LABELS, cv=8)
-#scores.mean()
-#print "Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2)
-clf.fit(X_train_minmax, LABELS)
+#FEATS = np.reshape(M_F, (ff[0]*ff[1], M_F.shape[2]))
+#LABELS = np.zeros((ff[0]*ff[1]))
+#LABELS[0:len(LABELS)/2] = 1
+#LABELS[len(LABELS)/2::] = 2
+#"""D.O. & T.C. """
+#min_max_scaler = preprocessing.MinMaxScaler()
+#X_train_minmax = min_max_scaler.fit_transform(FEATS)
+#
+#"""
+#pca = decomposition.PCA(n_components=len(feat))
+#pca.fit(feat)
+#V = pca.components_
+#"""
+#clf = svm.SVC(kernel='linear', C=1)
+##scores = cross_val_score(clf, X_train_minmax, LABELS, cv=8)
+##scores.mean()
+##print "Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2)
+#clf.fit(X_train_minmax, LABELS)
 
 #el = np.array(np.arange(0,8))
 #potmed = S[:,:,(F>=8)*(F<=12),:] # Potencia entre 8-12 Hz
@@ -139,25 +183,25 @@ clf.fit(X_train_minmax, LABELS)
 #    plt.show()
 #    pass
 #
-S_ID = 'julian200602'
-
-DATA = get_data_db(S_ID)
-[D_DC, m_v] = remove_dc(DATA) # Datos sin DC
-Y = butter_filter(D_DC)
-SCALE = 8
-FS = 500/SCALE # esto es porque fue submuestreado a 2
-DIV = 500.0/SCALE
-SUB_SIGNAL = down_sampling(Y, int(SCALE), DIV)
-
-TS = 1.0/FS
-TIME = np.arange(0, len(D_DC[0][0]) * TS, TS)
-F, T, S1 = signal.spectrogram(SUB_SIGNAL, fs=FS,nfft=256, nperseg=200, noverlap=100)
-ff = SUB_SIGNAL.shape # Tamaño del array
-#frang = ((F>=8)*(F<=12))#+((F>=16)*(F<=31))
-M_F = np.mean(S1[:,:,frang,:], axis=3) # Potencia promedio para cada frecuencia
-feat = np.reshape(M_F, (ff[0]*ff[1], M_F.shape[2]))
-X_test = min_max_scaler.fit_transform(feat)
-output = clf.predict(X_test)
-
-conf = confusion_matrix(LABELS, output)
-print conf
+#S_ID = 'julian200602'
+#
+#DATA = get_data_db(S_ID)
+#[D_DC, m_v] = remove_dc(DATA) # Datos sin DC
+#Y = butter_filter(D_DC)
+#SCALE = 8
+#FS = 500/SCALE # esto es porque fue submuestreado a 2
+#DIV = 500.0/SCALE
+#SUB_SIGNAL = down_sampling(Y, int(SCALE), DIV)
+#
+#TS = 1.0/FS
+#TIME = np.arange(0, len(D_DC[0][0]) * TS, TS)
+#F, T, S1 = signal.spectrogram(SUB_SIGNAL, fs=FS,nfft=256, nperseg=200, noverlap=100)
+#ff = SUB_SIGNAL.shape # Tamaño del array
+##frang = ((F>=8)*(F<=12))#+((F>=16)*(F<=31))
+#M_F = np.mean(S1[:,:,frang,:], axis=3) # Potencia promedio para cada frecuencia
+#feat = np.reshape(M_F, (ff[0]*ff[1], M_F.shape[2]))
+#X_test = min_max_scaler.fit_transform(feat)
+#output = clf.predict(X_test)
+#
+#conf = confusion_matrix(LABELS, output)
+#print conf
