@@ -33,9 +33,8 @@ class Game(object):
 		pygame.display.flip()
 		self.screen.blit(self.background, (0, 0))
 		player_car = Car(pygame.image.load(os.path.join('data', 'car_blue.png')))
-		player_pos = player_car.rect
-		player_pos.x = (self.width/2) - 15
-		player_pos.y = (self.height/2) - 25
+		player_car.rect.x = (self.width/2) - 15
+		player_car.rect.y = (self.height/2) - 25
 		#------------------Main Loop-------------------------------------------
 		while not gameover:            
 			for evento in pygame.event.get():
@@ -46,16 +45,15 @@ class Game(object):
 					if evento.key == pygame.K_ESCAPE:
 						print("ESC pressed")
 						gameover = True
-					if evento.key == pygame.K_LEFT:
-						print("LEFT pressed")
-						self.screen.blit(self.background,player_pos,player_pos) # Erase the player from the screen.
-						player_pos.x -= 2
-					if evento.key == pygame.K_RIGHT:
-						print("RIGHT pressed")
-						self.screen.blit(self.background,player_pos,player_pos)
-						player_pos.x += 2
+			keys = pygame.key.get_pressed()
+			if keys[pygame.K_LEFT]:
+				self.screen.blit(self.background,player_car.rect,player_car.rect) # Erase the player from the screen.
+				player_car.moveLeft()
+			if keys[pygame.K_RIGHT]:
+				self.screen.blit(self.background,player_car.rect,player_car.rect) # Erase the player from the screen.
+				player_car.moveRight()
 			#------------------------------------------------------------------
-			self.screen.blit(player_car.surface,player_pos)
+			self.screen.blit(player_car.surface,player_car.rect)
 			pygame.display.update()
 			milliseconds = self.clock.tick(self.fps)
 			self.playtime += milliseconds / 1000.0
@@ -68,12 +66,14 @@ class Game(object):
 		self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
 class Car(pygame.sprite.Sprite):
-
 	def __init__(self, image):
-	   pygame.sprite.Sprite.__init__(self)
-	   self.surface = image.convert()
-	   self.image = image
-	   self.rect = self.image.get_rect()
-
+		pygame.sprite.Sprite.__init__(self)
+		self.surface = image.convert()
+		self.image = image
+		self.rect = self.image.get_rect()
+	def moveLeft(self):
+		self.rect.x -= 2
+	def moveRight(self):
+		self.rect.x += 2
 if __name__ == '__main__':
 	Game().run()
