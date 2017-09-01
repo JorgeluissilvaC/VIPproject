@@ -27,7 +27,6 @@ class App(object):
 		x = (self.width/2)-50
 		y = (self.height/2)-50
 		#----------------------------------------------------------------------
-		#pygame.draw.rect(self.screen,Green, [x,y, 100, 100])
 		self.screen.blit(self.background, (0, 0))
 		self.draw_text("BCI:GAME",dh = 200)
 		self.draw_text("Training",color = (255,200,0),fontmod = -10)
