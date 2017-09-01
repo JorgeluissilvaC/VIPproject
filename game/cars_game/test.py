@@ -32,6 +32,7 @@ class App(object):
 		self.draw_text("Training",color = (255,200,0),fontmod = -10)
 		self.draw_text("Play",dh = -100,fontmod = -10)
 		pygame.display.flip()
+		
 		#------------------Main Loop-------------------------------------------
 		while not gameover:
 			for evento in pygame.event.get():
