@@ -17,13 +17,74 @@ class App(object):
 		#self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
 		self.background = pygame.Surface(self.screen.get_size()).convert()
 		self.clock = pygame.time.Clock()
-		self.font = pygame.font.SysFont('mono', 40, bold=True)
+		self.font = pygame.font.SysFont('mono', 40, bold=False)
 		self.fps = fps
 		self.playtime = 0.0
-		self.r=5
-		self.ID=ID
+		self.opt = 0
 		
 	def run(self):
+		gameover = False
+		x = (self.width/2)-50
+		y = (self.height/2)-50
+		#----------------------------------------------------------------------
+		#pygame.draw.rect(self.screen,Green, [x,y, 100, 100])
+		self.screen.blit(self.background, (0, 0))
+		self.draw_text("BCI:GAME",dh = 200)
+		self.draw_text("Training",color = (255,200,0),fontmod = -10)
+		self.draw_text("Play",dh = -100,fontmod = -10)
+		pygame.display.flip()
+		#------------------Main Loop-------------------------------------------
+		while not gameover:
+			for evento in pygame.event.get():
+				if evento.type == pygame.QUIT: 
+					print("Close pressed")
+					gameover = True
+				if evento.type == pygame.KEYDOWN:
+					if evento.key == pygame.K_ESCAPE:
+						print("ESC pressed")
+						gameover = True
+			keys = pygame.key.get_pressed()
+			if keys[pygame.K_UP]:
+				self.draw_text("Training",color = (255,200,0),fontmod = -10)
+				self.draw_text("Play",dh = -100,fontmod = -10)
+				self.opt = 0
+			if keys[pygame.K_DOWN]:
+				self.draw_text("Training",fontmod = -10)
+				self.draw_text("Play",color = (255,200,0),dh = -100,fontmod = -10)
+				self.opt = 1
+			if keys[pygame.K_SPACE]:
+				if (self.opt == 1):
+					self.game()
+					self.background.fill((0,0,0))
+					self.screen.blit(self.background, (0,0))
+					self.draw_text("BCI:GAME",dh = 200)
+					self.draw_text("Training",fontmod = -10)
+					self.draw_text("Play",color = (255,200,0),dh = -100,fontmod = -10)
+				else:
+					lock = True
+					self.background.fill((0,0,0))
+					self.screen.blit(self.background, (0,0))
+					self.draw_text("BCI:Training",dh = 200)
+					self.draw_text("Press 'S' to start",color = (255,200,0),fontmod = -10)
+					while lock == True:
+						for evento in pygame.event.get():
+							if evento.type == pygame.KEYDOWN:
+								if evento.key == pygame.K_ESCAPE:
+									print("ESC pressed")
+									lock = False
+						pygame.display.update()
+					self.background.fill((0,0,0))
+					self.screen.blit(self.background, (0,0))
+					self.draw_text("BCI:GAME",dh = 200)
+					self.draw_text("Training",color = (255,200,0),fontmod = -10)
+					self.draw_text("Play",dh = -100,fontmod = -10)	
+			#------------------------------------------------------------------
+			pygame.display.update()
+			milliseconds = self.clock.tick(self.fps)
+			self.playtime += milliseconds / 1000.0
+		pygame.quit()
+
+	def game(self):
 		gameover = False
 		x = (self.width/2)-50
 		y = (self.height/2)-50
@@ -39,9 +100,6 @@ class App(object):
 		#------------------Main Loop-------------------------------------------
 		while not gameover:
 			for evento in pygame.event.get():
-				if evento.type == pygame.QUIT: 
-					print("Close pressed")
-					gameover = True
 				if evento.type == pygame.KEYDOWN:
 					if evento.key == pygame.K_ESCAPE:
 						print("ESC pressed")
@@ -58,12 +116,14 @@ class App(object):
 			pygame.display.update()
 			milliseconds = self.clock.tick(self.fps)
 			self.playtime += milliseconds / 1000.0
-		pygame.quit()
 
-	def draw_text(self, text, color = Green, dw = 0, dh = 0):
+	def draw_text(self, text, color = Green, dw = 0, dh = 0,fontmod = 0):
+		if fontmod != 0:
+			self.font = pygame.font.SysFont('mono', 40+fontmod, bold=False)
 		fw, fh = self.font.size(text) # fw: font width,  fh: font height
 		surface = self.font.render(text, True, color)
 		# // makes integer division in python3
+		self.font = pygame.font.SysFont('mono', 40, bold=True)
 		self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
 class Car(pygame.sprite.Sprite):
