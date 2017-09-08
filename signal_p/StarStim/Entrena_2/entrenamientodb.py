@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
-# encoding: utf-8
 """
-Script entrenamiento para los dos dispositivos Emotiv Epoc
+Script entrenamiento para Starstim
+
+Este archivo contiene dos tipos de entrenamiento del sistema. 
+Tipo=1
+Corresponde a las etapas de concentración y relajación
+Tipo = 2
+Corresponde a que la persona mueva una extremidad físicamente y además se imagine el movimiento.
+
 """
 import pygame
 import random
@@ -10,28 +16,24 @@ import numpy as np
 import scipy.io as sio
 import winsound         # for sound  
 from pylsl import StreamInlet, resolve_stream
-"""
-Tareas:
-    Eliminar base de datos
-    Incluir procesamiento
-    Trabajar con archivos locales 
-    producir el .arff
-"""
+
 class game(object):
 
-    def __init__ (self, id_s = "unknown",rept = 1, width = 800, height = 600, fps = 30):
+    def __init__ (self, id_s = "unknown",rept = 1,tipo = 1, width = 800, height = 600, fps = 30):
         """Initialize pygame, window, background, font,...
         """
         pygame.init()
         pygame.display.set_caption("VIP: BCI")
+        self.tipo = tipo 
         self.width = width
         self.height = height
         self.id_s = str(id_s)
         self.rept = int(rept)
-        #self.height = width // 4
         self.dimensions = (self.width, self.height)
         #self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
         self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
+        self.imagenR= pygame.image.load("R1.png").convert()
+        self.imagenL= pygame.image.load("R2.png").convert()
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.screen.fill((255,255,255))#Fondo blanco
         self.clock = pygame.time.Clock()
@@ -59,7 +61,7 @@ class game(object):
                         print ("[!] Preparation stage Finished")
             milliseconds = self.clock.tick(self.fps)
             self.playtime += milliseconds / 1000.0
-            self.draw_text("BCI")
+            self.draw_text("Entrenamiento sistema BCI")
             pygame.display.flip()
             self.screen.blit(self.background, (0, 0))
         pygame.quit()
@@ -72,37 +74,130 @@ class game(object):
         self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
     def  preparation(self):
+        """Definition of the tasks of the training.
+        """
         ntrial = 0
-        t = 25; #tiempo de muestra
-        datac = np.zeros((self.rept,t*500,8));
-        datar = np.zeros((self.rept,t*500,8));
-                        
-        while(ntrial < self.rept):
-            self.rest(10)
-            j1 = self.concentration(t)
-            winsound.Beep(800, 2000)
-            self.rest(10)
-            j2 = self.relaxation(t)
-            self.Loading()
-            datac[ntrial]=j1
-            datar[ntrial]=j2
-            ntrial+=1     
-        self.saveDataDB(self.id_s,datac,datar)
-        
-    def concentration(self,t):
+        t = 5 # Geting data time
+        rs = 3 # Rest time 
+        sound = 1 #Sound time 
+        frequencySound = 800 # Frequency sound 
+        timeOut = 3 #  time without getting data during the activity, at the beginning and the end
+        if self.tipo == 1:
+            datac = np.zeros((self.rept,t*500,8));#Concentration data
+            datar = np.zeros((self.rept,t*500,8));#Relaxantion data                             
+            while(ntrial < self.rept):
+                self.rest(rs)
+                winsound.Beep(frequencySound ,sound*1000)
+                j1 = self.concentration(t,timeOut)
+                #-------------------------
+                self.rest(rs)
+                winsound.Beep(frequencySound ,sound*1000)
+                j2 = self.relaxation(t,timeOut)
+                #-------------------------
+                self.Loading()
+                datac[ntrial]=j1
+                datar[ntrial]=j2
+                ntrial+=1     
+            self.saveDataDB(self.id_s,self.tipo,datac,datar,0,0)
+        elif self.tipo == 2:
+            dataRI = np.zeros((self.rept,t*500,8)); #Right hand data - Mind 
+            dataRR = np.zeros((self.rept,t*500,8)); #Right hand data- Real 
+            dataLI = np.zeros((self.rept,t*500,8)); #Left hand data- Mind
+            dataLR= np.zeros((self.rept,t*500,8));  #Left hand data- Real 
+            while(ntrial < self.rept):
+                self.rest(rs)
+                winsound.Beep(frequencySound , sound*1000)
+                j1 = self.rigthReal(t,timeOut)
+                #-------------------------
+                self.rest(rs)
+                winsound.Beep(frequencySound , sound*1000)
+                j3 = self.leftReal(t,timeOut)
+                #-------------------------
+                self.Loading()
+                dataRR[ntrial]=j1
+                dataLR[ntrial]=j3
+                ntrial+=1    
+                
+            ntrial = 0
+            while(ntrial < self.rept):
+                self.rest(rs)
+                winsound.Beep(frequencySound , sound*1000)
+                j2 = self.rigthMind(t,timeOut)
+                #-------------------------
+                self.rest(rs)
+                winsound.Beep(frequencySound , sound*1000)
+                j4 = self.leftMind(t,timeOut)
+                #------------------------
+                self.Loading()
+                dataRI[ntrial]=j2
+                dataLI[ntrial]=j4
+                ntrial+=1    
+                
+            self.saveDataDB(self.id_s,self.tipo,dataRR,dataRI,dataLR, dataLI)
+            pass
+            
+    def rigthReal(self,t,timeOut):
+        self.draw_text("Mueva",(100,255,100))
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(2)
+        self.screen.blit(self.imagenR, [self.x_center, self.y_center])
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(timeOut)
+        d = self.getDataO(t)
+        return d
+    
+    def rigthMind(self,t,timeOut):
+        self.draw_text("Imagine",(100,255,100))
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(2)
+        self.screen.blit(self.imagenR, [self.x_center, self.y_center])
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(timeOut)
+        d = self.getDataO(t)
+        return d
+    
+    def leftReal(self,t,timeOut):
+        self.draw_text("Mueva",(100,255,100))
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(2)
+        self.screen.blit(self.imagenL, [self.x_center, self.y_center])
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(timeOut)
+        d = self.getDataO(t)
+        return d
+    
+    def leftMind(self,t,timeOut):
+        self.draw_text("Imagine",(100,255,100))
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(2)
+        self.screen.blit(self.imagenL, [self.x_center, self.y_center])
+        pygame.display.flip()
+        self.screen.blit(self.background, (0, 0))
+        time.sleep(timeOut)
+        d = self.getDataO(t)
+        return d
+    
+    def concentration(self,t,timeOut):
         g=random.randint(100,200)
         self.draw_text(str(g),(100,255,100))
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-        winsound.Beep(800, 2000)
+        time.sleep(timeOut)
         d = self.getDataO(t)
         return d
-        
-    def relaxation(self,t):
+    
+    def relaxation(self,t,timeOut):
         self.draw_text("[+]",(100,255,100))
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-        winsound.Beep(800, 2000)
+        time.sleep(timeOut)
         d = self.getDataO(t)
         return d
 
@@ -116,7 +211,7 @@ class game(object):
         self.draw_text("Cargando...",(100,255,100))
         pygame.display.flip()
         self.screen.blit(self.background, (0, 0))
-        time.sleep(0.5)
+        time.sleep(1)
 
     def getDataO(self, tm):
         stream_name = 'NIC'
@@ -147,14 +242,27 @@ class game(object):
         data_time = np.array(muestras)       
         return data_time
 
-    def saveDataDB(self,name,datac,datar):
-        datac = np.transpose(datac,(1,2,0))
-        datar = np.transpose(datar,(1,2,0))
-        sio.savemat(name+'.mat',{'conc':datac, 'rel':datar})
-
+    def saveDataDB(self,name,tipo,d1,d2,d3,d4):
+        
+        if tipo==1:
+            datac = np.transpose(d1,(1,2,0))
+            datar = np.transpose(d2,(1,2,0))
+            sio.savemat(name+'.mat',{'conc':datac, 'rel':datar})
+        elif tipo == 2:
+            dataRR = np.transpose(d1,(1,2,0))
+            dataRI= np.transpose(d2,(1,2,0))
+            dataLR= np.transpose(d3,(1,2,0))
+            dataLI= np.transpose(d4,(1,2,0))
+            sio.savemat(name+'.mat',{'dataRR':dataRR, 'dataRI':dataRI,'dataLR':dataLR, 'dataLI':dataLI})
+            pass
+            
 if __name__ == '__main__':
-    id_s = raw_input("[!] Digite el identificador del sujeto: ")
-    rept = raw_input("[!] Digite la cantidad de pruebas a realizar: ")
-    game(id_s,rept, 800, 600).run()
+    #id_s = raw_input("[!] Digite el identificador del sujeto: ")
+    #raw_input("[!] Digite la cantidad de pruebas a realizar: ")
+    #raw_input("[!] Seleccione el tipo de entrenamiento[1=con-rela][2=real- imag]:")
+    id_s="julian270701"
+    rept = 30
+    tipo = 1
+    game(id_s,rept,int(tipo), 800, 600).run()
 
 
