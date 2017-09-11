@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pygame
+import resources.images as imgs
 import os
 # Colors
 Green   = (0, 255, 150)
@@ -21,7 +22,6 @@ class App(object):
 		self.fps = fps
 		self.playtime = 0.0
 		self.opt = 0
-		
 	def run(self):
 		gameover = False
 		x = (self.width/2)-50
@@ -91,10 +91,10 @@ class App(object):
 		#----------------------------------------------------------------------
 		#self.draw_text("BCI Game")
 		#pygame.draw.rect(self.screen,Green, [x,y, 100, 100])
-		self.background = pygame.image.load(os.path.join('data', 'background.png')).convert()
+		self.background = imgs.bg["background"].convert()
 		self.screen.blit(self.background, (0, 0))
 		pygame.display.flip()
-		player_car = Car(pygame.image.load(os.path.join('data', 'car_blue.png')))
+		player_car = Car(imgs.car["car_blue"])
 		player_car.rect.x = (self.width/2) - 15
 		player_car.rect.y = (self.height/2) + 175
 		#------------------Main Loop-------------------------------------------
@@ -137,6 +137,22 @@ class Car(pygame.sprite.Sprite):
 		self.rect.x -= 2
 	def moveRight(self):
 		self.rect.x += 2
+
+class Signal(pygame.sprite.Sprite):
+	def __init__(self, image, width, height):
+		pygame.sprite.Sprite.__init__(self)
+		self.surface = image.convert()
+		self.surface.set_colorkey((255,255,255))
+		self.image = image
+		self.rect = self.image.get_rect()
+		self.rect.x = width/2-rect.w/2
+		self.rect.y = height/2-rect.h/2
+	def moveLeftPosition(self):
+		self.rect.x = width/2-rect.w/2 - 4 * rect.w
+	def moveRightPosition(self):
+		self.rect.x = width/2-rect.w/2 + 4 * rect.w
+	def moveCentralPosition(self):
+		self.rect.x = width/2-rect.w/2
 
 if __name__ == '__main__':
 	App().run()
