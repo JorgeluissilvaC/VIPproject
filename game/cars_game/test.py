@@ -2,8 +2,10 @@
 import pygame
 import resources.images as imgs
 import os
+
 # Colors
 Green   = (0, 255, 150)
+Yellow = (255,200,0)
 
 class App(object):
 
@@ -29,7 +31,7 @@ class App(object):
 		#----------------------------------------------------------------------
 		self.screen.blit(self.background, (0, 0))
 		self.draw_text("BCI:GAME",dh = 200)
-		self.draw_text("Training",color = (255,200,0),fontmod = -10)
+		self.draw_text("Training",color = Yellow,fontmod = -10)
 		self.draw_text("Play",dh = -100,fontmod = -10)
 		pygame.display.flip()
 		
@@ -45,12 +47,12 @@ class App(object):
 						gameover = True
 			keys = pygame.key.get_pressed()
 			if keys[pygame.K_UP]:
-				self.draw_text("Training",color = (255,200,0),fontmod = -10)
+				self.draw_text("Training",color = Yellow,fontmod = -10)
 				self.draw_text("Play",dh = -100,fontmod = -10)
 				self.opt = 0
 			if keys[pygame.K_DOWN]:
 				self.draw_text("Training",fontmod = -10)
-				self.draw_text("Play",color = (255,200,0),dh = -100,fontmod = -10)
+				self.draw_text("Play",color = Yellow,dh = -100,fontmod = -10)
 				self.opt = 1
 			if keys[pygame.K_SPACE]:
 				if (self.opt == 1):
@@ -59,13 +61,13 @@ class App(object):
 					self.screen.blit(self.background, (0,0))
 					self.draw_text("BCI:GAME",dh = 200)
 					self.draw_text("Training",fontmod = -10)
-					self.draw_text("Play",color = (255,200,0),dh = -100,fontmod = -10)
+					self.draw_text("Play",color = Yellow,dh = -100,fontmod = -10)
 				else:
 					lock = True
 					self.background.fill((0,0,0))
 					self.screen.blit(self.background, (0,0))
 					self.draw_text("BCI:Training",dh = 200)
-					self.draw_text("Press 'S' to start",color = (255,200,0),fontmod = -10)
+					self.draw_text("Press 'S' to start",color = Yellow,fontmod = -10)
 					while lock == True:
 						for evento in pygame.event.get():
 							if evento.type == pygame.KEYDOWN:
@@ -76,7 +78,7 @@ class App(object):
 					self.background.fill((0,0,0))
 					self.screen.blit(self.background, (0,0))
 					self.draw_text("BCI:GAME",dh = 200)
-					self.draw_text("Training",color = (255,200,0),fontmod = -10)
+					self.draw_text("Training",color = Yellow,fontmod = -10)
 					self.draw_text("Play",dh = -100,fontmod = -10)	
 			#------------------------------------------------------------------
 			pygame.display.update()
@@ -86,15 +88,12 @@ class App(object):
 
 	def game(self):
 		gameover = False
-		x = (self.width/2)-50
-		y = (self.height/2)-50
 		#----------------------------------------------------------------------
-		#self.draw_text("BCI Game")
-		#pygame.draw.rect(self.screen,Green, [x,y, 100, 100])
-		self.background = imgs.bg["background"].convert()
-		self.screen.blit(self.background, (0, 0))
+		bg = imgs.bg["green"]
+		bg_y = -bg.get_height()/2
+		self.screen.blit(bg, (0, bg_y))
 		pygame.display.flip()
-		player_car = Car(imgs.car["car_blue"])
+		player_car = Car(imgs.car["blue"])
 		player_car.rect.x = (self.width/2) - 15
 		player_car.rect.y = (self.height/2) + 175
 		#------------------Main Loop-------------------------------------------
@@ -111,7 +110,13 @@ class App(object):
 			if keys[pygame.K_RIGHT]:
 				self.screen.blit(self.background,player_car.rect,player_car.rect) # Erase car from the screen.
 				player_car.moveRight()
+
 			#------------------------------------------------------------------
+			if bg_y == 0:
+				bg_y = -bg.get_height()/2
+			else:
+				bg_y += 1
+			self.screen.blit(bg, (0, bg_y))
 			self.screen.blit(player_car.surface,player_car.rect)
 			pygame.display.update()
 			milliseconds = self.clock.tick(self.fps)
@@ -138,21 +143,23 @@ class Car(pygame.sprite.Sprite):
 	def moveRight(self):
 		self.rect.x += 2
 
-class Signal(pygame.sprite.Sprite):
+class Sign(pygame.sprite.Sprite):
 	def __init__(self, image, width, height):
 		pygame.sprite.Sprite.__init__(self)
 		self.surface = image.convert()
 		self.surface.set_colorkey((255,255,255))
 		self.image = image
 		self.rect = self.image.get_rect()
-		self.rect.x = width/2-rect.w/2
-		self.rect.y = height/2-rect.h/2
+		self.rect.x = width/2-self.rect.w/2
+		self.rect.y = height/2-self.rect.h/2
+		self.master_w = width
+		self.master_h = height
 	def moveLeftPosition(self):
-		self.rect.x = width/2-rect.w/2 - 4 * rect.w
+		self.rect.x = self.master_w/2-self.rect.w/2 - 4 * self.rect.w
 	def moveRightPosition(self):
-		self.rect.x = width/2-rect.w/2 + 4 * rect.w
+		self.rect.x = self.master_w/2-self.rect.w/2 + 4 * self.rect.w
 	def moveCentralPosition(self):
-		self.rect.x = width/2-rect.w/2
+		self.rect.x = self.master_w/2-self.rect.w/2
 
 if __name__ == '__main__':
 	App().run()
