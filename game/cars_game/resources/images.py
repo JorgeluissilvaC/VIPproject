@@ -12,7 +12,6 @@ car = {}
 bg = {}
 sign = {}
 
-
 for i in bg_files:
 	idx = i.split(".")
 	

@@ -2,6 +2,8 @@
 import pygame
 import threading
 import resources.images as imgs
+from starstimcon.conection import Ssc
+import numpy as np
 import os
 
 # Colors
@@ -25,7 +27,11 @@ class App(object):
 		self.playtime = 0.0
 		self.opt = 0
 		self.threads = list()
-		#get_data_t = threading.Thread(target=self.getdata)
+		self.x = list()
+		
+
+	def saveData(self, result):
+		self.x.append(result)
 
 	def run(self):
 		gameover = False
@@ -95,6 +101,8 @@ class App(object):
 		player_car.rect.y = (self.height/2) + 175
 		show_left_sign = False
 		show_right_sign = False
+		con = Ssc(self)
+		get_data_t = threading.Thread(target=con.getData, args=(5,))
 		#------------------Main Loop-------------------------------------------
 		count = 0
 		while (count < n):
@@ -124,6 +132,7 @@ class App(object):
 					self.screen.blit(self.background,arrow_r.rect,arrow_r.rect)
 					self.screen.blit(self.background,player_car.rect,player_car.rect)
 					#Aquí metes izquierda
+					get_data_t.start()
 				elif(self.playtime - starttime > 8 and self.playtime - starttime < 9 ):
 					show_right_sign = True
 					show_left_sign = False
