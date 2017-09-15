@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pygame
+import threading
 import resources.images as imgs
 import os
 
@@ -8,7 +9,6 @@ Green   = (0, 255, 150)
 Yellow = (255,200,0)
 
 class App(object):
-
 	def __init__ (self,ID="unknown", width=800, height=600, fps=60):
 		"""Initialize pygame, window, background, font,..."""
 		pygame.init()
@@ -24,6 +24,9 @@ class App(object):
 		self.fps = fps
 		self.playtime = 0.0
 		self.opt = 0
+		self.threads = list()
+		#get_data_t = threading.Thread(target=self.getdata)
+
 	def run(self):
 		gameover = False
 		x = (self.width/2)-50
@@ -34,7 +37,8 @@ class App(object):
 		self.draw_text("Training",color = Yellow,fontmod = -10)
 		self.draw_text("Play",dh = -100,fontmod = -10)
 		pygame.display.flip()
-		
+
+
 		#------------------Main Loop-------------------------------------------
 		while not gameover:
 			for evento in pygame.event.get():
@@ -63,28 +67,109 @@ class App(object):
 					self.draw_text("Training",fontmod = -10)
 					self.draw_text("Play",color = Yellow,dh = -100,fontmod = -10)
 				else:
-					lock = True
-					self.background.fill((0,0,0))
-					self.screen.blit(self.background, (0,0))
-					self.draw_text("BCI:Training",dh = 200)
-					self.draw_text("Press 'S' to start",color = Yellow,fontmod = -10)
-					while lock == True:
-						for evento in pygame.event.get():
-							if evento.type == pygame.KEYDOWN:
-								if evento.key == pygame.K_ESCAPE:
-									print("ESC pressed")
-									lock = False
-						pygame.display.update()
+					self.training(2)
 					self.background.fill((0,0,0))
 					self.screen.blit(self.background, (0,0))
 					self.draw_text("BCI:GAME",dh = 200)
-					self.draw_text("Training",color = Yellow,fontmod = -10)
-					self.draw_text("Play",dh = -100,fontmod = -10)	
+					self.draw_text("Training",fontmod = -10)
+					self.draw_text("Play",color = Yellow,dh = -100,fontmod = -10)
 			#------------------------------------------------------------------
 			pygame.display.update()
 			milliseconds = self.clock.tick(self.fps)
 			self.playtime += milliseconds / 1000.0
 		pygame.quit()
+
+	def training(self,n):
+		starttime = self.playtime
+		#----------------------------------------------------------------------
+		bg = imgs.bg["green"]
+		bg_y = -bg.get_height()/2
+		self.screen.blit(bg, (0, bg_y))
+		pygame.display.flip()
+		player_car = Car(imgs.car["blue"])
+		arrow_l = Sign(imgs.sign["arrow_l"],self.width,self.height)
+		arrow_l.moveLeftPosition()
+		arrow_r = Sign(imgs.sign["arrow_r"],self.width,self.height)
+		arrow_r.moveRightPosition()
+		player_car.rect.x = (self.width/2) - 15
+		player_car.rect.y = (self.height/2) + 175
+		show_left_sign = False
+		show_right_sign = False
+		#------------------Main Loop-------------------------------------------
+		count = 0
+		while (count < n):
+			finish = False
+			while not finish:
+				for evento in pygame.event.get():
+					if evento.type == pygame.KEYDOWN:
+						if evento.key == pygame.K_ESCAPE:
+							print("ESC pressed")
+							finish = True
+
+				if(self.playtime - starttime > 1 and self.playtime - starttime < 2 ):
+					show_right_sign = False
+					show_left_sign = True
+					self.screen.blit(self.background,player_car.rect,player_car.rect) # Erase car from the screen.
+					self.screen.blit(self.background,arrow_l.rect,arrow_l.rect) # Erase sign from the screen.
+					player_car.moveLeft(3)
+				if (self.playtime - starttime > 2 and self.playtime - starttime < 3 ):
+					show_right_sign = False
+					show_left_sign = False
+					self.screen.blit(self.background,player_car.rect,player_car.rect) 
+					self.screen.blit(self.background,arrow_r.rect,arrow_r.rect) 
+					player_car.moveRight(3)
+				elif(self.playtime - starttime > 3 and self.playtime - starttime < 8 ):
+					show_right_sign = False
+					show_left_sign = False
+					self.screen.blit(self.background,arrow_r.rect,arrow_r.rect)
+					self.screen.blit(self.background,player_car.rect,player_car.rect)
+					#Aquí metes izquierda
+				elif(self.playtime - starttime > 8 and self.playtime - starttime < 9 ):
+					show_right_sign = True
+					show_left_sign = False
+					self.screen.blit(self.background,player_car.rect,player_car.rect)
+					self.screen.blit(self.background,arrow_r.rect,arrow_r.rect)
+					player_car.moveRight(3)
+				elif(self.playtime - starttime > 9 and self.playtime - starttime < 10 ):
+					show_right_sign = False
+					show_left_sign = False
+					self.screen.blit(self.background,player_car.rect,player_car.rect)
+					self.screen.blit(self.background,arrow_l.rect,arrow_l.rect)
+					player_car.moveLeft(3)
+
+				elif(self.playtime - starttime > 10 and self.playtime - starttime < 15 ):
+					show_right_sign = False
+					show_left_sign = False
+					self.screen.blit(self.background,arrow_r.rect,arrow_r.rect)
+					self.screen.blit(self.background,player_car.rect,player_car.rect)
+					#Aquí metes Derecha
+				elif(self.playtime - starttime >= 15):
+					show_right_sign = False
+					show_left_sign = False
+					starttime = self.playtime
+					count += 1
+					finish = True
+				else:
+					show_right_sign = False
+					if (self.playtime - starttime > 0.5 and self.playtime - starttime < 1 ):
+						show_left_sign = True
+					self.screen.blit(self.background,arrow_l.rect,arrow_l.rect)
+					self.screen.blit(self.background,player_car.rect,player_car.rect)
+				#------------------------------------------------------------------
+				if bg_y == 0:
+					bg_y = -bg.get_height()/2
+				else:
+					bg_y += 1
+				self.screen.blit(bg, (0, bg_y))
+				if show_left_sign == True:
+					self.screen.blit(arrow_l.surface,arrow_l.rect)
+				elif show_right_sign == True:
+					self.screen.blit(arrow_r.surface,arrow_r.rect)
+				self.screen.blit(player_car.surface,player_car.rect)
+				self.screen.blit(player_car.surface,player_car.rect)
+				pygame.display.update()
+				milliseconds = self.clock.tick(self.fps)
+				self.playtime += milliseconds / 1000.0
 
 	def game(self):
 		gameover = False
@@ -118,6 +203,7 @@ class App(object):
 				bg_y += 1
 			self.screen.blit(bg, (0, bg_y))
 			self.screen.blit(player_car.surface,player_car.rect)
+			self.screen.blit(player_car.surface,player_car.rect)
 			pygame.display.update()
 			milliseconds = self.clock.tick(self.fps)
 			self.playtime += milliseconds / 1000.0
@@ -130,7 +216,6 @@ class App(object):
 		# // makes integer division in python3
 		self.font = pygame.font.SysFont('mono', 40, bold=True)
 		self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
-
 class Car(pygame.sprite.Sprite):
 	def __init__(self, image):
 		pygame.sprite.Sprite.__init__(self)
@@ -138,10 +223,10 @@ class Car(pygame.sprite.Sprite):
 		self.surface.set_colorkey((255,255,255))
 		self.image = image
 		self.rect = self.image.get_rect()
-	def moveLeft(self):
-		self.rect.x -= 2
-	def moveRight(self):
-		self.rect.x += 2
+	def moveLeft(self,d = 2):
+		self.rect.x -= d
+	def moveRight(self,d = 2):
+		self.rect.x += d
 
 class Sign(pygame.sprite.Sprite):
 	def __init__(self, image, width, height):
@@ -155,9 +240,9 @@ class Sign(pygame.sprite.Sprite):
 		self.master_w = width
 		self.master_h = height
 	def moveLeftPosition(self):
-		self.rect.x = self.master_w/2-self.rect.w/2 - 4 * self.rect.w
+		self.rect.x = self.master_w/2-self.rect.w/2 - 2 * self.rect.w
 	def moveRightPosition(self):
-		self.rect.x = self.master_w/2-self.rect.w/2 + 4 * self.rect.w
+		self.rect.x = self.master_w/2-self.rect.w/2 + 2 * self.rect.w
 	def moveCentralPosition(self):
 		self.rect.x = self.master_w/2-self.rect.w/2
 
