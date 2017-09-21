@@ -31,7 +31,8 @@
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
+extensions = [
+    'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
@@ -51,16 +52,16 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'FlightStone'
-copyright = '2017, A. S. Mateus & J. O. Pacheco'
-author = 'A. S. Mateus & J. O. Pacheco'
+project = 'VIP-BCI'
+copyright = '2017, Dayan Jr. & Jorge Silva'
+author = 'Dayan Jr. & Jorge Silva'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '1.0624'
+version = '1.0'
 # The full version, including alpha/beta/rc tags.
 release = '1.0'
 
@@ -120,7 +121,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'FlightStonedoc'
+htmlhelp_basename = 'VIP-BCIdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -157,7 +158,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'flightstone', 'FlightStone Documentation',
+    (master_doc, 'vipbci', 'FlightStone Documentation',
      [author], 1)
 ]
 

@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = python -msphinx
-SPHINXPROJ    = FlightStone
+SPHINXPROJ    = VIP-BCI
 SOURCEDIR     = .
 BUILDDIR      = _build
 
