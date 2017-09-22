@@ -1,4 +1,8 @@
 VIP-BCI Tutorials
 =================
 
-*HELLO INTRODUCTION*
+## **CREA UNA SESIÓN DE ENTRENAMIENTO**
+
+
+
+## **CREA UNA SESIÓN DE TESTING**
