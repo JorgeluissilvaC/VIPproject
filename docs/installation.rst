@@ -1,4 +1,2 @@
 TODO List
 =========
-
-*Hello TODO*
