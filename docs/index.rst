@@ -11,7 +11,6 @@ Welcome to VIP-BCI documentation!
    :caption: Contents:
    :hidden:
 
-   Introduction <introduction>
    Installation <installation>
    Theory <theory>
    Component Description <cmp_description>
