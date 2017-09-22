@@ -1,4 +1,4 @@
-FlightStone Introduction
-========================
+VIP-BCI Introduction
+====================
 
 *HELLO INTRODUCTION*
