@@ -2,20 +2,20 @@
 import pygame
 import threading
 import resources.images as imgs
-from starstimcon.conection import Ssc
+from pylsl import StreamInlet, resolve_stream
 import numpy as np
-import os
-
+import time
 # Colors
 Green   = (0, 255, 150)
 Yellow = (255,200,0)
 
 class App(object):
-	def __init__ (self,ID="unknown", width=800, height=600, fps=60):
+	def __init__ (self,ID="unknown", n_trials = 1, width=800, height=600, fps=60):
 		"""Initialize pygame, window, background, font,..."""
 		pygame.init()
 		pygame.display.set_caption("VIP: BCI@GAME")
 		self.width = width
+		self.n_trials = n_trials
 		self.height = height
 		self.dimensions = (self.width, self.height)
 		self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
@@ -27,11 +27,9 @@ class App(object):
 		self.playtime = 0.0
 		self.opt = 0
 		self.threads = list()
-		self.x = list()
-		
+		self.data_from_ss = np.zeros((2500,8))
+		self.lock = True
 
-	def saveData(self, result):
-		self.x.append(result)
 
 	def run(self):
 		gameover = False
@@ -73,7 +71,7 @@ class App(object):
 					self.draw_text("Training",fontmod = -10)
 					self.draw_text("Play",color = Yellow,dh = -100,fontmod = -10)
 				else:
-					self.training(2)
+					self.training(self.n_trials)
 					self.background.fill((0,0,0))
 					self.screen.blit(self.background, (0,0))
 					self.draw_text("BCI:GAME",dh = 200)
@@ -97,14 +95,20 @@ class App(object):
 		arrow_l.moveLeftPosition()
 		arrow_r = Sign(imgs.sign["arrow_r"],self.width,self.height)
 		arrow_r.moveRightPosition()
-		player_car.rect.x = (self.width/2) - 15
+		initial_x = (self.width/2) - 15
+		player_car.rect.x = initial_x-1
 		player_car.rect.y = (self.height/2) + 175
 		show_left_sign = False
 		show_right_sign = False
-		con = Ssc(self)
-		get_data_t = threading.Thread(target=con.getData, args=(5,))
+		t_act = 5 #seconds save data
+		datal = np.zeros((self.n_trials,t_act*500,8)); #Concentration data
+		datar = np.zeros((self.n_trials,t_act*500,8)); #Relaxantion data                             
 		#------------------Main Loop-------------------------------------------
 		count = 0
+		amount_count = 0
+		cont = 0
+		direction = "left"
+		self.lock = True
 		while (count < n):
 			finish = False
 			while not finish:
@@ -114,56 +118,75 @@ class App(object):
 							print("ESC pressed")
 							finish = True
 
-				if(self.playtime - starttime > 1 and self.playtime - starttime < 2 ):
-					show_right_sign = False
-					show_left_sign = True
-					self.screen.blit(self.background,player_car.rect,player_car.rect) # Erase car from the screen.
-					self.screen.blit(self.background,arrow_l.rect,arrow_l.rect) # Erase sign from the screen.
-					player_car.moveLeft(3)
-				if (self.playtime - starttime > 2 and self.playtime - starttime < 3 ):
-					show_right_sign = False
-					show_left_sign = False
-					self.screen.blit(self.background,player_car.rect,player_car.rect) 
-					self.screen.blit(self.background,arrow_r.rect,arrow_r.rect) 
-					player_car.moveRight(3)
-				elif(self.playtime - starttime > 3 and self.playtime - starttime < 8 ):
-					show_right_sign = False
-					show_left_sign = False
-					self.screen.blit(self.background,arrow_r.rect,arrow_r.rect)
-					self.screen.blit(self.background,player_car.rect,player_car.rect)
-					#Aquí metes izquierda
-					get_data_t.start()
-				elif(self.playtime - starttime > 8 and self.playtime - starttime < 9 ):
-					show_right_sign = True
-					show_left_sign = False
-					self.screen.blit(self.background,player_car.rect,player_car.rect)
-					self.screen.blit(self.background,arrow_r.rect,arrow_r.rect)
-					player_car.moveRight(3)
-				elif(self.playtime - starttime > 9 and self.playtime - starttime < 10 ):
-					show_right_sign = False
-					show_left_sign = False
-					self.screen.blit(self.background,player_car.rect,player_car.rect)
-					self.screen.blit(self.background,arrow_l.rect,arrow_l.rect)
-					player_car.moveLeft(3)
+				if self.lock and count < n:
+					if (self.playtime - starttime > 1):
+						if (direction == "left" and (player_car.rect.x > initial_x-(self.width/4)/2) and (player_car.rect.x < initial_x)):
+							show_right_sign = False
+							show_left_sign = True
+							if cont == amount_count:
+								player_car.moveLeft()
+								self.screen.blit(self.background,player_car.rect,player_car.rect)
+								self.screen.blit(self.background,arrow_l.rect,arrow_l.rect)
+								cont = 0
+							else:
+								cont += 1
+						elif(direction == "left" and (player_car.rect.x == initial_x-(self.width/4)/2)):
+							direction = "right"
+						elif(direction == "right" and (player_car.rect.x < initial_x)):
+							show_right_sign = False
+							show_left_sign = False
+							if cont == amount_count:
+								player_car.moveRight()
+								self.screen.blit(self.background,player_car.rect,player_car.rect)
+								cont = 0
+							else:
+								cont += 1
+						elif(direction == "right" and (player_car.rect.x == initial_x)):
+							if self.lock == True: # Thread left
+								get_data_t = threading.Thread(target= self.test, args=())
+								get_data_t.start()
+								self.lock = False
+								player_car.moveRight()
+								self.screen.blit(self.background,player_car.rect,player_car.rect)
 
-				elif(self.playtime - starttime > 10 and self.playtime - starttime < 15 ):
-					show_right_sign = False
-					show_left_sign = False
-					self.screen.blit(self.background,arrow_r.rect,arrow_r.rect)
-					self.screen.blit(self.background,player_car.rect,player_car.rect)
-					#Aquí metes Derecha
-				elif(self.playtime - starttime >= 15):
-					show_right_sign = False
-					show_left_sign = False
-					starttime = self.playtime
-					count += 1
+						elif(direction == "right" and (player_car.rect.x < initial_x+(self.width/4)/2) and (player_car.rect.x > initial_x)):
+							show_right_sign = True
+							show_left_sign = False
+							if cont == amount_count:
+								player_car.moveRight()
+								self.screen.blit(self.background,player_car.rect,player_car.rect)
+								self.screen.blit(self.background,arrow_r.rect,arrow_r.rect)
+								cont = 0
+							else:
+								cont += 1
+						elif(direction == "right" and (player_car.rect.x == initial_x+(self.width/4)/2)):
+							direction = "left"
+						elif(direction == "left" and (player_car.rect.x > initial_x)):
+							show_right_sign = False
+							show_left_sign = False
+							if cont == amount_count:
+								player_car.moveLeft()
+								self.screen.blit(self.background,player_car.rect,player_car.rect)
+								cont = 0
+							else:
+								cont += 1
+						elif(direction == "left" and (player_car.rect.x == initial_x)):
+							if self.lock == True: # Thread right
+								get_data_t = threading.Thread(target= self.test, args=())
+								get_data_t.start()
+								self.lock = False
+								player_car.moveLeft()
+								self.screen.blit(self.background,player_car.rect,player_car.rect)
+								if (count < n-1):
+									count += 1
+									finish = True
+								else:
+									count += 1
+				elif self.lock:
 					finish = True
-				else:
-					show_right_sign = False
-					if (self.playtime - starttime > 0.5 and self.playtime - starttime < 1 ):
-						show_left_sign = True
-					self.screen.blit(self.background,arrow_l.rect,arrow_l.rect)
-					self.screen.blit(self.background,player_car.rect,player_car.rect)
+
+
+
 				#------------------------------------------------------------------
 				if bg_y == 0:
 					bg_y = -bg.get_height()/2
@@ -179,7 +202,7 @@ class App(object):
 				pygame.display.update()
 				milliseconds = self.clock.tick(self.fps)
 				self.playtime += milliseconds / 1000.0
-
+				
 	def game(self):
 		gameover = False
 		#----------------------------------------------------------------------
@@ -225,6 +248,53 @@ class App(object):
 		# // makes integer division in python3
 		self.font = pygame.font.SysFont('mono', 40, bold=True)
 		self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
+
+	def getData(self, tm):
+		print('HILO')
+		stream_name = 'NIC'
+		streams = resolve_stream('type', 'EEG')
+		fs = 500  # Frecuencia de muestreo
+		N = fs * tm  # Numero de muestras
+		c = 0;
+		muestras = []
+		try:
+			for i in range(len(streams)):
+
+				if streams[i].name() == stream_name:
+					index = i
+					print ("NIC stream available")
+			print ("Connecting to NIC stream... \n")
+			inlet = StreamInlet(streams[index])
+
+		except NameError:
+			print ("Error: NIC stream not available\n\n\n")
+		data_time = np.zeros((N,8))
+		while c < N:
+			print(c)
+			sample, timestamp = inlet.pull_sample()
+			muestras.append(sample)
+			c += 1
+
+		# Array con los datos de los electrodos
+		data_time = np.array(muestras)   
+		print("shape muestras: "+str(data_time.shape))   
+		self.data_from_ss = data_time
+		self.lock = True
+
+	def test(self):
+		time.sleep(5)
+		self.lock = True
+	def saveData(self,name,tipo,d1,d2):
+		
+		if tipo==1:
+			datac = np.transpose(d1,(1,2,0))
+			datar = np.transpose(d2,(1,2,0))
+			sio.savemat(name+'.mat',{'conc':datac, 'rel':datar})
+		elif tipo == 2:
+			dataRI= np.transpose(d1,(1,2,0))
+			dataLI= np.transpose(d2,(1,2,0))
+			sio.savemat(name+'.mat',{'izq':dataRI,'der':dataLI})
+
 class Car(pygame.sprite.Sprite):
 	def __init__(self, image):
 		pygame.sprite.Sprite.__init__(self)
@@ -232,10 +302,12 @@ class Car(pygame.sprite.Sprite):
 		self.surface.set_colorkey((255,255,255))
 		self.image = image
 		self.rect = self.image.get_rect()
-	def moveLeft(self,d = 2):
+	def moveLeft(self,d = 1):
 		self.rect.x -= d
-	def moveRight(self,d = 2):
+	def moveRight(self,d = 1):
 		self.rect.x += d
+
+
 
 class Sign(pygame.sprite.Sprite):
 	def __init__(self, image, width, height):
