@@ -40,6 +40,7 @@ So, what can you expect from our work, well here are the objectives we set our m
 Specific Capabilities
 ---------------------
 With this application you can do basically the following things:
+
 - Train the system to recognize LEFT and RIGHT brain signals of a specific individual
 - Train the system to recognize whether the user is under mental concentration or is relaxed
 - Play to different games: a box moving game and a car race game with your brain (using the data acquired in the training stages)
