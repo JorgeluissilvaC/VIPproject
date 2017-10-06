@@ -2,17 +2,21 @@
 import pygame
 import threading
 import resources.images as imgs
+import processing.eeg as pss
 from pylsl import StreamInlet, resolve_stream
+from scipy import signal
 import numpy as np
 import scipy.io as sio
-import time
 from collections import deque
+from sklearn import preprocessing
+from sklearn import svm
+
 # Colors
 Green   = (0, 255, 150)
 Yellow = (255,200,0)
 
 class App(object):
-	def __init__ (self,ID="unknown", n_trials = 2, ,t_act = 5, width=800, height=600, fps=60):
+	def __init__ (self,ID="unknown", n_trials = 2, t_act = 5, width=800, height=600, fps=60):
 		"""Initialize pygame, window, background, font,..."""
 		pygame.init()
 		pygame.display.set_caption("VIP: BCI@GAME")
@@ -32,17 +36,15 @@ class App(object):
 		self.threads = list()
 		self.data_from_ss = np.zeros((2500,8))
 		self.lock = True
-		self.t_act = 5 #seconds save data
+		self.t_act = t_act #seconds save data
 		self.datal = np.zeros((self.n_trials,self.t_act*500,8)); #left training data
 		self.datar = np.zeros((self.n_trials,self.t_act*500,8)); #Right training data
 		self.beep = pygame.mixer.Sound('resources/sounds/beep.wav')
-		self.databuffer = deque([], self.t_act*500)
+		self.databuffer = deque([], 500)
 
 
 	def run(self):
 		gameover = False
-		x = (self.width/2)-50
-		y = (self.height/2)-50
 		#----------------------------------------------------------------------
 		self.screen.blit(self.background, (0, 0))
 		self.draw_text("BCI:GAME",dh = 200)
@@ -216,6 +218,14 @@ class App(object):
 		self.saveData(self.ID, self.datal,self.datar)
 
 	def game(self):
+		training_data, Labels = pss.getDataExt(self.ID)
+		feats_old= self.processing(training_data)
+		scaler = preprocessing.MinMaxScaler(feature_range=(-1,1))
+		X_train_minmax = scaler.fit_transform(feats_old)
+		clf = svm.SVC(kernel='linear', C=1)
+		#Se entrena el clasificador con las mejores características
+		clf.fit(X_train_minmax, Labels)
+		print "entrenado"
 		gameover = False
 		#----------------------------------------------------------------------
 		bg = imgs.bg["green"]
@@ -226,6 +236,9 @@ class App(object):
 		player_car.rect.x = (self.width/2) - 15
 		player_car.rect.y = (self.height/2) + 175
 		auto_update_buffer_t = threading.Thread(target= self.AutoupdateBuffer, args=())
+		print "auto"
+		auto_update_buffer_t.start()
+		print "start"
 		#------------------Main Loop-------------------------------------------
 		while not gameover:
 			for evento in pygame.event.get():
@@ -234,19 +247,21 @@ class App(object):
 						print("ESC pressed")
 						gameover = True
 
-			if len(self.databuffer) = self.t_act*500:
-				self.databuffer #here is the data, but be carefull, because the the data is refreshing in another thread
-			
-			"""
-			keys = pygame.key.get_pressed()
-
-			if keys[pygame.K_LEFT]:
-				self.screen.blit(self.background,player_car.rect,player_car.rect) # Erase car from the screen.
-				player_car.moveLeft()
-			if keys[pygame.K_RIGHT]:
-				self.screen.blit(self.background,player_car.rect,player_car.rect) # Erase car from the screen.
-				player_car.moveRight()
-			"""
+			if len(self.databuffer) == 500:
+					print "array"
+					eeg_data = np.array(self.databuffer)
+					print "eeg data"
+					feats = self.processing(eeg_data)
+					X_test_min = scaler.transform(feats)
+					cls=clf.predict(X_test_min)
+					if cls == 2:
+						self.screen.blit(self.background,player_car.rect,player_car.rect) 
+						# Erase car from the screen.
+						player_car.moveLeft()
+					if cls == 1:
+						self.screen.blit(self.background,player_car.rect,player_car.rect) 
+						# Erase car from the screen.
+						player_car.moveRight()
 			#------------------------------------------------------------------
 			if bg_y == 0:
 				bg_y = -bg.get_height()/2
@@ -315,7 +330,6 @@ class App(object):
 
 		except NameError:
 			print ("Error: NIC stream not available\n\n\n")
-		data_time = np.zeros((N,8))
 		while True:
 			sample, timestamp = inlet.pull_sample()
 			self.databuffer.append(sample)
@@ -329,6 +343,37 @@ class App(object):
 			dataLI= np.transpose(d1,(1,2,0))
 			dataRI= np.transpose(d2,(1,2,0))
 			sio.savemat(name+'.mat',{'izq':dataRI,'der':dataLI})
+			
+	def processing(self,dataTime):
+		print dataTime.shape
+		eeg_car = pss.car_data(dataTime)
+		print "CAR"
+		[D_DC, m_v] = pss.remove_dc(eeg_car)
+		print "remove DC"
+		Y = pss.butter_filter(D_DC)
+		print "DC filter"
+		SCALE = 1
+		FS = 500/SCALE # esto es porque fue submuestreado 
+		DIV = 500.0/SCALE
+		SUB_SIGNAL = pss.down_sampling(Y, int(SCALE), DIV) # Sub muestreo
+		Wsize = round(0.7*FS)
+		Wnover = round(0.6*FS)
+		Windw = signal.hamming(Wsize)
+		F, T, S = signal.spectrogram(SUB_SIGNAL, fs=FS, window=Windw,nperseg=Wsize, noverlap=Wnover)
+		ff = SUB_SIGNAL.shape # Tamaño del array
+		dimen = len(ff)
+		frang = ((F>=0)*(F<=30))# Solo se debe cambiar el rango ((F>=16)*(F<=31))
+		#freq_rang = F[frang]
+		Sig_S = S[:,:,frang,:]
+		if (dimen == 3):
+			M_F = np.mean(Sig_S, axis=3) # Potencia promedio para cada frecuencia
+			FEATS = np.reshape(M_F, (ff[0], M_F.shape[2]*ff[1]))
+		elif (dimen == 2):    
+			M_F = np.mean(Sig_S, axis=2) # Potencia promedio para cada frecuencia
+			FEATS = M_F
+			FEATS = np.reshape(FEATS, (M_F.shape[0]*M_F.shape[1],1))
+			FEATS = FEATS.T
+		return FEATS
 
 class Car(pygame.sprite.Sprite):
 	def __init__(self, image):
@@ -362,6 +407,9 @@ class Sign(pygame.sprite.Sprite):
 	def moveCentralPosition(self):
 		self.rect.x = self.master_w/2-self.rect.w/2
 
+
+
+	
 if __name__ == '__main__':
 	nombre = raw_input("[!] ID: ")
 	n = int(raw_input("[!] Trials: "))
