@@ -4,22 +4,24 @@ import threading
 import resources.images as imgs
 from pylsl import StreamInlet, resolve_stream
 import numpy as np
+import scipy.io as sio
 import time
 # Colors
 Green   = (0, 255, 150)
 Yellow = (255,200,0)
 
 class App(object):
-	def __init__ (self,ID="unknown", n_trials = 1, width=800, height=600, fps=60):
+	def __init__ (self,ID="unknown", n_trials = 2, width=800, height=600, fps=60):
 		"""Initialize pygame, window, background, font,..."""
 		pygame.init()
 		pygame.display.set_caption("VIP: BCI@GAME")
+		self.ID = ID
 		self.width = width
 		self.n_trials = n_trials
 		self.height = height
 		self.dimensions = (self.width, self.height)
-		self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
-		#self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
+		#self.screen = pygame.display.set_mode(self.dimensions, pygame.DOUBLEBUF)
+		self.screen = pygame.display.set_mode(self.dimensions, pygame.FULLSCREEN)
 		self.background = pygame.Surface(self.screen.get_size()).convert()
 		self.clock = pygame.time.Clock()
 		self.font = pygame.font.SysFont('mono', 40, bold=False)
@@ -29,6 +31,10 @@ class App(object):
 		self.threads = list()
 		self.data_from_ss = np.zeros((2500,8))
 		self.lock = True
+		t_act = 5 #seconds save data
+		self.datal = np.zeros((self.n_trials,t_act*500,8)); #left training data
+		self.datar = np.zeros((self.n_trials,t_act*500,8)); #Right training data
+		self.beep = pygame.mixer.Sound('resources/sounds/beep.wav')
 
 
 	def run(self):
@@ -100,9 +106,7 @@ class App(object):
 		player_car.rect.y = (self.height/2) + 175
 		show_left_sign = False
 		show_right_sign = False
-		t_act = 5 #seconds save data
-		datal = np.zeros((self.n_trials,t_act*500,8)); #Concentration data
-		datar = np.zeros((self.n_trials,t_act*500,8)); #Relaxantion data                             
+
 		#------------------Main Loop-------------------------------------------
 		count = 0
 		amount_count = 0
@@ -111,6 +115,7 @@ class App(object):
 		self.lock = True
 		while (count < n):
 			finish = False
+			sonido = True
 			while not finish:
 				for evento in pygame.event.get():
 					if evento.type == pygame.KEYDOWN:
@@ -130,6 +135,9 @@ class App(object):
 								cont = 0
 							else:
 								cont += 1
+							if sonido == True:
+								self.beep.play()
+								sonido = False
 						elif(direction == "left" and (player_car.rect.x == initial_x-(self.width/4)/2)):
 							direction = "right"
 						elif(direction == "right" and (player_car.rect.x < initial_x)):
@@ -143,12 +151,11 @@ class App(object):
 								cont += 1
 						elif(direction == "right" and (player_car.rect.x == initial_x)):
 							if self.lock == True: # Thread left
-								get_data_t = threading.Thread(target= self.test, args=())
+								get_data_t = threading.Thread(target= self.getData, args=(5,"left",count))
 								get_data_t.start()
 								self.lock = False
 								player_car.moveRight()
 								self.screen.blit(self.background,player_car.rect,player_car.rect)
-
 						elif(direction == "right" and (player_car.rect.x < initial_x+(self.width/4)/2) and (player_car.rect.x > initial_x)):
 							show_right_sign = True
 							show_left_sign = False
@@ -159,6 +166,10 @@ class App(object):
 								cont = 0
 							else:
 								cont += 1
+							#sonido = True
+							if sonido == False:
+								self.beep.play()
+								sonido = True
 						elif(direction == "right" and (player_car.rect.x == initial_x+(self.width/4)/2)):
 							direction = "left"
 						elif(direction == "left" and (player_car.rect.x > initial_x)):
@@ -172,7 +183,7 @@ class App(object):
 								cont += 1
 						elif(direction == "left" and (player_car.rect.x == initial_x)):
 							if self.lock == True: # Thread right
-								get_data_t = threading.Thread(target= self.test, args=())
+								get_data_t = threading.Thread(target= self.getData, args=(5,"right",count))
 								get_data_t.start()
 								self.lock = False
 								player_car.moveLeft()
@@ -184,9 +195,6 @@ class App(object):
 									count += 1
 				elif self.lock:
 					finish = True
-
-
-
 				#------------------------------------------------------------------
 				if bg_y == 0:
 					bg_y = -bg.get_height()/2
@@ -202,7 +210,8 @@ class App(object):
 				pygame.display.update()
 				milliseconds = self.clock.tick(self.fps)
 				self.playtime += milliseconds / 1000.0
-				
+		print("Training finished for " +self.ID+", "+str(self.n_trials)+" trials done.")
+		self.saveData(self.ID, self.datal,self.datar)
 	def game(self):
 		gameover = False
 		#----------------------------------------------------------------------
@@ -249,8 +258,7 @@ class App(object):
 		self.font = pygame.font.SysFont('mono', 40, bold=True)
 		self.screen.blit(surface, ((self.width - fw - dw) // 2, (self.height - dh) // 2))
 
-	def getData(self, tm):
-		print('HILO')
+	def getData(self, tm, direction, n):
 		stream_name = 'NIC'
 		streams = resolve_stream('type', 'EEG')
 		fs = 500  # Frecuencia de muestreo
@@ -270,29 +278,28 @@ class App(object):
 			print ("Error: NIC stream not available\n\n\n")
 		data_time = np.zeros((N,8))
 		while c < N:
-			print(c)
 			sample, timestamp = inlet.pull_sample()
 			muestras.append(sample)
 			c += 1
-
 		# Array con los datos de los electrodos
-		data_time = np.array(muestras)   
-		print("shape muestras: "+str(data_time.shape))   
-		self.data_from_ss = data_time
+		data_time = np.array(muestras)
+		if direction == "left":
+				self.datal[n] = data_time
+				print("left data, trial "+str(n) + " saved")
+		elif direction == "right":
+				self.datar[n] = data_time
+				print("right data, trial "+str(n) + " saved")
 		self.lock = True
 
-	def test(self):
-		time.sleep(5)
-		self.lock = True
-	def saveData(self,name,tipo,d1,d2):
-		
+
+	def saveData(self,name,d1,d2,tipo = 2):
 		if tipo==1:
 			datac = np.transpose(d1,(1,2,0))
 			datar = np.transpose(d2,(1,2,0))
 			sio.savemat(name+'.mat',{'conc':datac, 'rel':datar})
 		elif tipo == 2:
-			dataRI= np.transpose(d1,(1,2,0))
-			dataLI= np.transpose(d2,(1,2,0))
+			dataLI= np.transpose(d1,(1,2,0))
+			dataRI= np.transpose(d2,(1,2,0))
 			sio.savemat(name+'.mat',{'izq':dataRI,'der':dataLI})
 
 class Car(pygame.sprite.Sprite):
@@ -328,4 +335,6 @@ class Sign(pygame.sprite.Sprite):
 		self.rect.x = self.master_w/2-self.rect.w/2
 
 if __name__ == '__main__':
-	App().run()
+	nombre = raw_input("[!] ID: ")
+	n = int(raw_input("[!] Trials: "))
+	App(ID = nombre,n_trials = n).run()
