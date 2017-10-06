@@ -16,7 +16,7 @@ class game(object):
 		self.fps = fps
 		self.playtime = 0.0
 		self.font = pygame.font.SysFont('mono', 20, bold=True)
-
+		self.databuffer = list()
 
 	def run(self):
 		"""The mainloop"""

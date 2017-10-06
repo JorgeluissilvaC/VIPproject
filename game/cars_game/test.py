@@ -6,12 +6,13 @@ from pylsl import StreamInlet, resolve_stream
 import numpy as np
 import scipy.io as sio
 import time
+from collections import deque
 # Colors
 Green   = (0, 255, 150)
 Yellow = (255,200,0)
 
 class App(object):
-	def __init__ (self,ID="unknown", n_trials = 2, width=800, height=600, fps=60):
+	def __init__ (self,ID="unknown", n_trials = 2, ,t_act = 5, width=800, height=600, fps=60):
 		"""Initialize pygame, window, background, font,..."""
 		pygame.init()
 		pygame.display.set_caption("VIP: BCI@GAME")
@@ -31,10 +32,11 @@ class App(object):
 		self.threads = list()
 		self.data_from_ss = np.zeros((2500,8))
 		self.lock = True
-		t_act = 5 #seconds save data
-		self.datal = np.zeros((self.n_trials,t_act*500,8)); #left training data
-		self.datar = np.zeros((self.n_trials,t_act*500,8)); #Right training data
+		self.t_act = 5 #seconds save data
+		self.datal = np.zeros((self.n_trials,self.t_act*500,8)); #left training data
+		self.datar = np.zeros((self.n_trials,self.t_act*500,8)); #Right training data
 		self.beep = pygame.mixer.Sound('resources/sounds/beep.wav')
+		self.databuffer = deque([], self.t_act*500)
 
 
 	def run(self):
@@ -212,6 +214,7 @@ class App(object):
 				self.playtime += milliseconds / 1000.0
 		print("Training finished for " +self.ID+", "+str(self.n_trials)+" trials done.")
 		self.saveData(self.ID, self.datal,self.datar)
+
 	def game(self):
 		gameover = False
 		#----------------------------------------------------------------------
@@ -222,6 +225,7 @@ class App(object):
 		player_car = Car(imgs.car["blue"])
 		player_car.rect.x = (self.width/2) - 15
 		player_car.rect.y = (self.height/2) + 175
+		auto_update_buffer_t = threading.Thread(target= self.AutoupdateBuffer, args=())
 		#------------------Main Loop-------------------------------------------
 		while not gameover:
 			for evento in pygame.event.get():
@@ -229,14 +233,20 @@ class App(object):
 					if evento.key == pygame.K_ESCAPE:
 						print("ESC pressed")
 						gameover = True
+
+			if len(self.databuffer) = self.t_act*500:
+				self.databuffer #here is the data, but be carefull, because the the data is refreshing in another thread
+			
+			"""
 			keys = pygame.key.get_pressed()
+
 			if keys[pygame.K_LEFT]:
 				self.screen.blit(self.background,player_car.rect,player_car.rect) # Erase car from the screen.
 				player_car.moveLeft()
 			if keys[pygame.K_RIGHT]:
 				self.screen.blit(self.background,player_car.rect,player_car.rect) # Erase car from the screen.
 				player_car.moveRight()
-
+			"""
 			#------------------------------------------------------------------
 			if bg_y == 0:
 				bg_y = -bg.get_height()/2
@@ -291,7 +301,25 @@ class App(object):
 				print("right data, trial "+str(n) + " saved")
 		self.lock = True
 
+	def AutoupdateBuffer(self):
+		stream_name = 'NIC'
+		streams = resolve_stream('type', 'EEG')
+		try:
+			for i in range(len(streams)):
 
+				if streams[i].name() == stream_name:
+					index = i
+					print ("NIC stream available")
+			print ("Connecting to NIC stream... \n")
+			inlet = StreamInlet(streams[index])
+
+		except NameError:
+			print ("Error: NIC stream not available\n\n\n")
+		data_time = np.zeros((N,8))
+		while True:
+			sample, timestamp = inlet.pull_sample()
+			self.databuffer.append(sample)
+	
 	def saveData(self,name,d1,d2,tipo = 2):
 		if tipo==1:
 			datac = np.transpose(d1,(1,2,0))
