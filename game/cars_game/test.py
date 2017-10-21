@@ -250,6 +250,7 @@ class App(object):
 			if len(self.databuffer) == 500:
 					print "array"
 					eeg_data = np.array(self.databuffer)
+					eeg_data = np.transpose(eeg_data,(1,0))
 					print "eeg data"
 					feats = self.processing(eeg_data)
 					X_test_min = scaler.transform(feats)
@@ -352,6 +353,7 @@ class App(object):
 		print "remove DC"
 		Y = pss.butter_filter(D_DC)
 		print "DC filter"
+		print eeg_car.shape
 		SCALE = 1
 		FS = 500/SCALE # esto es porque fue submuestreado 
 		DIV = 500.0/SCALE
@@ -359,16 +361,20 @@ class App(object):
 		Wsize = round(0.7*FS)
 		Wnover = round(0.6*FS)
 		Windw = signal.hamming(Wsize)
+		SUB_SIGNAL.shape
 		F, T, S = signal.spectrogram(SUB_SIGNAL, fs=FS, window=Windw,nperseg=Wsize, noverlap=Wnover)
+		#F, T, S = signal.spectrogram(Y, fs=FS, window=Windw,nperseg=Wsize, noverlap=int(Wnover))
 		ff = SUB_SIGNAL.shape # Tamaño del array
 		dimen = len(ff)
-		frang = ((F>=0)*(F<=30))# Solo se debe cambiar el rango ((F>=16)*(F<=31))
+		frang = ((F>=8)*(F<=13))+((F>=14)*(F<=31))# Solo se debe cambiar el rango ((F>=16)*(F<=31))
 		#freq_rang = F[frang]
-		Sig_S = S[:,:,frang,:]
+		print S.shape
 		if (dimen == 3):
+			Sig_S = S[:,:,frang,:]
 			M_F = np.mean(Sig_S, axis=3) # Potencia promedio para cada frecuencia
 			FEATS = np.reshape(M_F, (ff[0], M_F.shape[2]*ff[1]))
 		elif (dimen == 2):    
+			Sig_S = S[:,frang,:]
 			M_F = np.mean(Sig_S, axis=2) # Potencia promedio para cada frecuencia
 			FEATS = M_F
 			FEATS = np.reshape(FEATS, (M_F.shape[0]*M_F.shape[1],1))

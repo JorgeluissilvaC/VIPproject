@@ -31,7 +31,7 @@ def butter_filter(data, highcut=30, fqc=500, order=6):
     nyq = 0.5*fqc
     high = highcut/nyq
     [b_c, a_c] = signal.butter(order, high, btype='low')
-    filt_sig = signal.lfilter(b_c, a_c, data)
+    filt_sig = signal.filtfilt(b_c, a_c, data)
     return filt_sig
 
 def remove_dc(data):
@@ -48,7 +48,7 @@ def remove_dc(data):
 				ndata[trial][electrode] = v_trial # guardamos señal sin DC
 	if (dim == 2):
 		mean_v = np.mean(data, axis=1)
-		for electrode in range(0, len(data[0])):
+		for electrode in range(0, len(data)):
 			# Señal original -  señal DC
 			v_trial = (data[electrode] - mean_v[electrode])
 			ndata[electrode] = v_trial # guardamos señal sin DC
