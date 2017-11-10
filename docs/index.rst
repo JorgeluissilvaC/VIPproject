@@ -15,7 +15,6 @@ Welcome to VIP-BCI documentation!
    Theory <theory>
    Component Description <cmp_description>
    Tutorials <tutorials>
-   Statistics and Performance <stats>
    Code Explorer <explorer>
 
 Hello, navigating this documentation is fairly straight foward, you can see the component tree in the navigation bar at the left. Each description unit serves a specific porpuse, perhaps you will find particularly interesting the *Installation* and *Tutorials* sections, as the information there is enough to give you working knowledge of the platform (installing, training, testing and extending it for your personal use cases). This is, however, surface knowledge; to delve into the advanced tutorials you will need to look into the *Component Description* section, to have a notion of the organization of the application. Further more, if you want to modify, remove or add functionality, exploring the source code is mandatory. *Theory* section and *Statistics and Performance* section is not required, but are valuable assets if you ever want to replicate some of the things we do here.
