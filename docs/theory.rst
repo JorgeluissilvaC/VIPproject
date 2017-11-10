@@ -6,6 +6,11 @@ Overall system considerations
 
 The BCI system is focused in identifying two types of mental states that modulate the alpha rhythms present in the human brain. The alpha rhythms are brain rhythms that range in the 8-13 Hz frequency band, they are produced mainly by activities in the thalamus (Figure 1). Alpha rhythms are predominant (in regards to other rhythms, such as the beta rhythm) when the person has the eyes closed and is in a relaxed state, they are also important in network coordination and communication. Alpha rhythms (or waves) can be detected either by  electroencephalography (EEG) or magnetoencephalography (MEG); due to acquisition easiness, a commercial electroencephalography (EEG) device is used.
 
+.. figure:: thalamus9.jpg
+   :scale: 50 %
+   :alt: map to buried treasure
+
+   Thalamus view.
 
 Given the particularity of alpha waves for detecting relaxed-to-stressed states, our system we have established this two activities as the ones the user must perform. The overall aim is, thus, design a system capable of determining in each state the user is by analysing the alpha waves of the subject, in real time. A second objective is desired: the user is asked, during the stressed state, to think in one of two actions, if possible opposite actions (like moving left, then right); the action the user want to perform will then modify the spectral disposition of the wave, allowing us to characterize the alpha waves for the two actions, and, with that information let the user control an object on-screen.
 
