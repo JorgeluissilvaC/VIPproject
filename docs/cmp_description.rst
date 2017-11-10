@@ -4,6 +4,7 @@ VIP-BCI Component Description
 The application structure is really simple and can be generalized as a classifing service coupled with an interactive user interface. Given that the classifier is trained with a different data set according to the user, a user management entity should be implemented, so that the correct data files are loaded when training. The interaction section is logically independant from the core section of classification, the main link is a set of functions that are:
 
 ::
+
     receiveClassifierDecision()
     move(decision)
 
