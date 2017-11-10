@@ -104,11 +104,11 @@ The training function triggers the data acquisition process explained in the The
 
 ::
 
-def training():
-    # Init the retreiving data cycle
-    self.initAcquisition()
+    def training():
+        # Init the retreiving data cycle
+        self.initAcquisition()
 
-    count = 0
-    while count < self.trials:
-        self.cycle()
-        count += 1
+        count = 0
+        while count < self.trials:
+            self.cycle()
+            count += 1
