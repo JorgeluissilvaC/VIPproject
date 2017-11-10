@@ -67,3 +67,34 @@ The entry point of the application is through a class named `App` and is compose
 
 As can be seen, the `App` class is self contained, as it implements functions of both classification and game interaction. In the following, the functions will be explained in detail.
 
+The `init` function set ups the class variables and calls the `run` function that starts the main application, that is the menu selection.
+
+::
+
+    def __init__(self, ID=nombre, trials=n, fps=60, **args):
+        # Init UI components
+        # Init thread instances
+        self.fps = fps
+        self.ID = ID
+        self.trials = trials
+
+        self.run()
+
+The `run` function determines whether the user wants to train or to play the game, the decision is interactive via the application menu.
+
+::
+    def run():
+        # Main loop of the application
+        # the self.fps variable controls the speed of the motion
+
+        while(1):
+            if self.method == 'training':
+                self.training()
+            elif self.method == 'game':
+                self.game()
+
+        # User interaction
+        ...
+
+        # Car position updating
+        self.updateCar()
