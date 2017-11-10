@@ -83,6 +83,7 @@ The `init` function set ups the class variables and calls the `run` function tha
 The `run` function determines whether the user wants to train or to play the game, the decision is interactive via the application menu.
 
 ::
+
     def run():
         # Main loop of the application
         # the self.fps variable controls the speed of the motion
