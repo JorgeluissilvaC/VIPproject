@@ -27,7 +27,7 @@ Alpha waves acquisition
 Alpha waves will be acquired via Starstim EEG device with 14 acquisition probes. The users are subjected to a training interface that iterates between relaxation and stress stages in a periodic manner, in each stage the user is requested the effect the respective action. In Figure 2 you can see the overall process for data acquisition. Each stage is repeated a large number of times, so that their contribution is statistically significant to the classifier.
 
 .. figure:: process.png
-   :scale: 70 %
+   :scale: 100 %
    :alt: map to buried treasure
 
    Figure 1. Process overview
@@ -35,7 +35,7 @@ Alpha waves will be acquired via Starstim EEG device with 14 acquisition probes.
 Each probe samples the voltage at a rate of 500Hz (good enough, given the frequency of the alpha waves). Thus we have 14 channels of voltage-time information, however, to characterize the alpha waves per channel the spectral information is more useful (this spectrum show the relation of relative amplitude against frequency value). Non desired frequency may be present so, a low-pass filter is applied. Some transforms to acquire the spectrum information are available: most popular one is the Fourier transform, and the other is the Hilbert transform (the main difference is that the Hilbert transform relays less data, as it only takes into account the envelope of the wave). Thus we have, power-vs-frequency data in a time interval (for each probe); we then generate a vector per probe where the power per frequency is averaged throughout the interval of acquisition (5 seconds), which results, as a whole, in a two dimensional data array. Adding all the repetitions together results in a tridimensional data array, as shown in Figure 3
 
 .. figure:: matrix.png
-   :scale: 70 %
+   :scale: 100 %
    :alt: map to buried treasure
 
    Figure 3. Matrix array for classification
