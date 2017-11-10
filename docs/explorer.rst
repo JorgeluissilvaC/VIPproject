@@ -99,3 +99,16 @@ The `run` function determines whether the user wants to train or to play the gam
 
         # Car position updating
         self.updateCar()
+
+The training function triggers the data acquisition process explained in the Theory section, this in turn means that a separate thread of execution is launched were the connection with Starstim is tested; that involves `process` and `getData` functions.
+
+::
+
+def training():
+    # Init the retreiving data cycle
+    self.initAcquisition()
+
+    count = 0
+    while count < self.trials:
+        self.cycle()
+        count += 1
