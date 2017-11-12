@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/vipproject/badge/?version=docs)](http://vipproject.readthedocs.io/en/docs/?badge=docs)
+
 ### VIP: BCI
 Platform for developing a Brain Computer Interface (BCI) Application. The idea is to collect neuronal data via Starstim device, in particular the [NIC system](http://www.neuroelectrics.com/products/software/nic/).
 
@@ -15,4 +17,4 @@ So, what can you expect from our work, well here are the objectives we set our m
 * Build different gaming platforms to test the classifying algorithm
 
 ## Documentation
-For detailed information about the usage and extensibility of the platform, head to the latest version of the documentation **here**.
+For detailed information about the usage and extensibility of the platform, head to the latest version of the documentation [**here**](http://vipproject.readthedocs.io/en/docs).
