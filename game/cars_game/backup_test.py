@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Created on Tue Nov 21 11:16:35 2017
+
+@author: User
+"""
+
+# -*- coding: utf-8 -*-
 import pygame
 import threading
 import resources.images as imgs
@@ -41,7 +48,6 @@ class App(object):
 		self.datar = np.zeros((self.n_trials,self.t_act*500,8)); #Right training data
 		self.beep = pygame.mixer.Sound('resources/sounds/beep.wav')
 		self.databuffer = deque([], 500)
-		self.predicted_move = 0
 
 	def run(self):
 		gameover = False
@@ -217,107 +223,6 @@ class App(object):
 		print("Training finished for " +self.ID+", "+str(self.n_trials)+" trials done.")
 		self.saveData(self.ID, self.datal,self.datar)
 
-
-	def test(self):
-		starttime = self.playtime
-		#----------------------------------------------------------------------
-		bg = imgs.bg["green"]
-		bg_y = -bg.get_height()/2
-		self.screen.blit(bg, (0, bg_y))
-		pygame.display.flip()
-		player_car = Car(imgs.car["blue"])
-		arrow_l = Sign(imgs.sign["arrow_l"],self.width,self.height)
-		arrow_l.moveLeftPosition()
-		arrow_r = Sign(imgs.sign["arrow_r"],self.width,self.height)
-		arrow_r.moveRightPosition()
-		initial_x = (self.width/2) - 15
-		player_car.rect.x = initial_x-1
-		player_car.rect.y = (self.height/2) + 175
-		show_left_sign = False
-		show_right_sign = False
-
-		#------------------Main Loop-------------------------------------------
-		count = 0
-		amount_count = 0
-		cont = 0
-		direction = "left"
-		self.lock = True
-		lock_thread = True
-		while (count < n):
-			finish = False
-			sonido = True
-			while not finish:
-				for evento in pygame.event.get():
-					if evento.type == pygame.KEYDOWN:
-						if evento.key == pygame.K_ESCAPE:
-							print("ESC pressed")
-							finish = True
-				if self.lock and count < n:
-					if (self.playtime - starttime > 1):
-						if (direction == "left"):
-							show_right_sign = False
-							show_left_sign = True
-							if lock_thread = True
-								# SThread
-								lock_thread = False
-								
-							if self.predicted_move == 0:
-								if cont == amount_count:
-									player_car.moveLeft()
-									self.screen.blit(self.background,player_car.rect,player_car.rect)
-									self.screen.blit(self.background,arrow_l.rect,arrow_l.rect)
-									cont = 0
-								else:
-									cont += 1
-								if(player_car.rect.x < initial_x-(self.width/4)/2):
-									direction == "right"
-							if self.predicted_move == 1:
-								if cont == amount_count:
-									player_car.moveRight()
-									self.screen.blit(self.background,player_car.rect,player_car.rect)
-									self.screen.blit(self.background,arrow_r.rect,arrow_r.rect)
-									cont = 0
-								else:
-									cont += 1
-								if(player_car.rect.x > initial_x+(self.width/4)/2):
-									direction == "right"
-								self.beep.play()
-								sonido = False
-								
-						elif(direction == "right"):
-							show_right_sign = True
-							show_left_sign = False
-							if cont == amount_count:
-								player_car.moveRight()
-								self.screen.blit(self.background,player_car.rect,player_car.rect)
-								cont = 0
-							else:
-								cont += 1
-							if (count < n-1):
-								count += 1
-								finish = True
-							else:
-								count += 1
-				elif self.lock:
-					finish = True
-				#------------------------------------------------------------------
-				if bg_y == 0:
-					bg_y = -bg.get_height()/2
-				else:
-					bg_y += 1
-				self.screen.blit(bg, (0, bg_y))
-				if show_left_sign == True:
-					self.screen.blit(arrow_l.surface,arrow_l.rect)
-				elif show_right_sign == True:
-					self.screen.blit(arrow_r.surface,arrow_r.rect)
-				self.screen.blit(player_car.surface,player_car.rect)
-				self.screen.blit(player_car.surface,player_car.rect)
-				pygame.display.update()
-				milliseconds = self.clock.tick(self.fps)
-				self.playtime += milliseconds / 1000.0
-		print("Training finished for " +self.ID+", "+str(self.n_trials)+" trials done.")
-		self.saveData(self.ID, self.datal,self.datar)
-	
 	def game(self):
 		training_data, Labels = pss.getDataExt(self.ID)
 		feats_old= self.processing(training_data)
