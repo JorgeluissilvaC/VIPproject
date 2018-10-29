@@ -18,3 +18,6 @@ So, what can you expect from our work, well here are the objectives we set our m
 
 ## Documentation
 For detailed information about the usage and extensibility of the platform, head to the latest version of the documentation [**here**](http://vipproject.readthedocs.io/en/docs).
+
+## Language 
+This project is development in Python. 
